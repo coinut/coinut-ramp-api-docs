@@ -7,16 +7,16 @@ Onramp lets your customers convert fiat currency into cryptocurrency. This guide
 
 ## What is Onramp?
 
-Onramp lets your customers convert fiat currency (AUD, EUR, GBP) into cryptocurrency (USDT). The flow works like this:
+Onramp lets your customers convert fiat currency (AUD, EUR, GBP, SGD ,USD and Other currencies) into cryptocurrency (USDT, USDC ). The flow works like this:
 
 1. Customer sends fiat to a virtual account
 2. Coinut detects the deposit
 3. Coinut executes the trade
-4. Crypto arrives at the customer's wallet
+4. Crypto arrives at the customer's wallet or your designated wallet address
 
 ## Architecture
 
-```
+```text
 Partner App -> Coinut API -> Sumsub (KYC) -> Virtual Account -> Deposit Detection -> Trade -> Crypto Transfer
 ```
 
@@ -38,13 +38,11 @@ Partner App -> Coinut API -> Sumsub (KYC) -> Virtual Account -> Deposit Detectio
 
     Store the returned `customerId`. The customer receives a KYC link via email to complete identity verification.
   </Step>
-
   <Step title="Wait for KYC Approval">
     Listen for the `CUSTOMER_APPROVED` webhook event. You can also poll `GET /customer/detail` to check status.
 
     Customer status transitions: `CREATED` → `PENDING` → `APPROVED` | `REJECTED`
   </Step>
-
   <Step title="Create Virtual Account">
     Call `POST /virtual-account/create` with `customerId` and currency (`AUD`, `EUR`, `GBP`).
 
@@ -52,9 +50,9 @@ Partner App -> Coinut API -> Sumsub (KYC) -> Virtual Account -> Deposit Detectio
 
     Store all returned VA banking details (PayID, BSB, account number, IBAN, etc.).
   </Step>
-
   <Step title="Add Crypto Address">
     Call `POST /crypto-address/add` with:
+
     - `customerId`
     - `currency="USDT"`
     - `address` — the customer's wallet address
@@ -63,7 +61,6 @@ Partner App -> Coinut API -> Sumsub (KYC) -> Virtual Account -> Deposit Detectio
 
     Store the returned crypto address ID. You'll need it for the autoramp flow.
   </Step>
-
   <Step title="Create Autoramp Flow">
     Call `POST /autoramp-flow/onramp` with the fiat source and crypto destination:
 
@@ -79,44 +76,46 @@ Partner App -> Coinut API -> Sumsub (KYC) -> Virtual Account -> Deposit Detectio
 
     This links the virtual account deposits to automatic crypto conversion.
   </Step>
-
   <Step title="Display VA to Customer">
     Show the virtual account details in your UI:
 
-    - **AUD**: Display PayID (e.g., `john.doe@example.com`) and BSB + Account Number
+    - **AUD**: Display PayID (e.g., `john.doe@example.com`) and BSB \+ Account Number
     - **EUR**: Display IBAN and SWIFT/BIC
     - **GBP**: Display IBAN and Sort Code
+    - **USD**: Display IBAN and Sort Code
+    - **SGD**: Display IBAN and Sort Code
+    - **other currencies** : Contact Coinut support for the exact banking fields
 
     Generate a QR code for PayID to simplify mobile banking transfers.
   </Step>
-
   <Step title="Monitor Deposits">
     Listen for webhooks:
+
     - `DEPOSIT_RECEIVED` — funds detected
     - `DEPOSIT_APPROVED` — funds cleared
 
     Or poll `GET /deposit/list` with the customer ID.
   </Step>
-
   <Step title="Track Trade">
     After deposit approval, listen for:
+
     - `TRADE_CREATED` — trade initiated
     - `TRADE_SETTLED` — trade complete, crypto sent
 
     Or poll `GET /trade/list`.
   </Step>
-
   <Step title="Confirm Settlement">
     The `TRADE_SETTLED` webhook includes `txHash`. Use it to verify the crypto transaction on-chain:
 
-    - ERC-20: https://etherscan.io/tx/{txHash}
-    - TRC-20: https://tronscan.org/#/transaction/{txHash}
+    - ERC-20: [https://etherscan.io/tx/{txHash}](https://etherscan.io/tx/{txHash})
+    - TRC-20: [https://tronscan.org/#/transaction/{txHash}](https://tronscan.org/#/transaction/{txHash})
   </Step>
 </Steps>
 
 ## Complete Code Example
 
 <CodeGroup>
+
 ```javascript Node.js
 const axios = require('axios');
 const crypto = require('crypto');
@@ -552,20 +551,17 @@ curl -X POST https://ramp.hexarails.ai/autoramp-flow/onramp \
     "to": "crypto_addr_id_xyz789"
   }'
 ```
+
 </CodeGroup>
 
 <Tip>
   Use the `externalId` field when creating customers to link Coinut records with your internal user system. This makes reconciliation and webhook handling much simpler.
 </Tip>
 
-<Warning>
-  Never store API secrets in client-side code or mobile apps. Always route requests through your backend server.
-</Warning>
-
-## Testing in Sandbox
+## Environment
 
 | Environment | Base URL |
-|-------------|----------|
+| --- | --- |
 | Production | `https://ramp.hexarails.ai` |
 | Sandbox | `https://ramp-sandbox.hexarails.ai` |
 
@@ -581,11 +577,11 @@ npx ngrok http 3000
 
 ## Go-Live Checklist
 
-- [ ] KYC flow tested end-to-end
-- [ ] All webhook events handled (`CUSTOMER_APPROVED`, `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_SETTLED`)
-- [ ] Error handling implemented for API failures and timeouts
-- [ ] Retry logic with exponential backoff for idempotent requests
-- [ ] Monitoring dashboards set up for deposit and trade volumes
-- [ ] IP whitelist configured in Partner Dashboard
-- [ ] Webhook signature verification implemented
-- [ ] Sandbox testing completed with multiple currencies
+- KYC flow tested end-to-end
+- All webhook events handled (`CUSTOMER_APPROVED`, `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_SETTLED`)
+- Error handling implemented for API failures and timeouts
+- Retry logic with exponential backoff for idempotent requests
+- Monitoring dashboards set up for deposit and trade volumes
+- IP whitelist configured in Partner Dashboard
+- Webhook signature verification implemented
+- Sandbox testing completed with multiple currencies

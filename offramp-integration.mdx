@@ -7,7 +7,7 @@ Offramp lets your customers convert cryptocurrency into fiat currency deposited 
 
 ## What is Offramp?
 
-Offramp lets your customers convert cryptocurrency (USDT) into fiat currency deposited to their bank account. The flow works like this:
+Offramp lets your customers convert cryptocurrency (USDT, USDC,etc) into fiat currency deposited to their bank account. The flow works like this:
 
 1. Customer sends crypto to a deposit address
 2. Coinut detects the deposit
@@ -16,7 +16,7 @@ Offramp lets your customers convert cryptocurrency (USDT) into fiat currency dep
 
 ## Architecture
 
-```
+```text
 Partner App -> Coinut API -> Deposit Address -> Deposit Detection -> Trade -> Fiat Bank Transfer
 ```
 
@@ -34,7 +34,6 @@ Before starting an offramp flow, ensure:
   <Step title="Create Customer">
     Same as onramp. Call `POST /customer/create` with name, email, `type="DEPOSITOR"`, `isIndividual=true`. Wait for `CUSTOMER_APPROVED` webhook.
   </Step>
-
   <Step title="Add Bank Account">
     Call `POST /bank-account/add` with the customer's banking details.
 
@@ -52,7 +51,6 @@ Before starting an offramp flow, ensure:
 
     Store the returned `bankAccountId`. Required fields vary by currency — see the [Bank Account Requirements](#bank-account-requirements) table below.
   </Step>
-
   <Step title="Create Offramp Flow">
     Call `POST /autoramp-flow/offramp` with the crypto source and fiat destination:
 
@@ -69,7 +67,6 @@ Before starting an offramp flow, ensure:
 
     This creates a deposit address and links incoming crypto to automatic fiat conversion.
   </Step>
-
   <Step title="Display Deposit Address">
     Retrieve the deposit address from the flow creation response or call `GET /deposit-address/detail`:
 
@@ -83,7 +80,6 @@ Before starting an offramp flow, ensure:
 
     Display this address to the customer with a clear warning to send only on the specified network.
   </Step>
-
   <Step title="Customer Sends Crypto">
     Customer sends USDT to the displayed address on the specified network (ETH or TRX). Provide clear instructions:
 
@@ -91,41 +87,33 @@ Before starting an offramp flow, ensure:
     - Correct network only (wrong network = lost funds)
     - Include memo/tag if required
   </Step>
-
   <Step title="Monitor Deposits">
     Listen for webhook events:
+
     - `DEPOSIT_RECEIVED` — crypto detected on-chain
     - `DEPOSIT_APPROVED` — confirmations reached, deposit cleared
   </Step>
-
   <Step title="Track Trade">
     After deposit approval:
+
     - `TRADE_CREATED` — fiat trade initiated
     - `TRADE_SETTLED` — trade executed, fiat queued for bank transfer
   </Step>
-
   <Step title="Fiat Arrives">
     After `TRADE_SETTLED`, fiat is sent to the bank account via banking rails. Settlement time depends on currency:
-
-    | Currency | Typical Time |
-    |----------|-------------|
-    | USD | 1-2 business days |
-    | EUR | 1 business day (SEPA) |
-    | GBP | 1 business day (Faster Payments) |
-    | CAD | 1 business day |
-    | AUD | 1 business day |
   </Step>
 </Steps>
 
 ## Bank Account Requirements
 
 | Currency | Required Fields | Optional Fields | Typical Settlement |
-|----------|----------------|----------------|-------------------|
+| --- | --- | --- | --- |
 | USD | `bankName`, `accountNo`, `aba` OR `swift` | `accountName`, `bankAddress` | 1-2 business days |
 | EUR | `bankName`, `accountNo` OR `iban`, `swift` | `accountName`, `bankAddress` | 1 business day |
 | GBP | `bankName`, `accountNo` OR `iban`, `swift` | `accountName`, `sortCode` | 1 business day |
 | CAD | `bankName`, `accountNo`, `institutionNumber`, `transit` | `accountName` | 1 business day |
 | AUD | `bankName`, `accountNo`, `bsb` | `accountName` | 1 business day |
+| SGD | `bankName`, `accountNo`, `aba` OR `swift` | `accountName`, `bankAddress` | 1 business day |
 
 <Note>
   Always include `accountName` when available. Some banks require an exact name match for compliance.
@@ -134,6 +122,7 @@ Before starting an offramp flow, ensure:
 ## Complete Code Example
 
 <CodeGroup>
+
 ```python Python
 import os
 import json
@@ -514,21 +503,18 @@ curl -X POST https://ramp.hexarails.ai/autoramp-flow/offramp \
     "to": "bank_acc_id_xyz789"
   }'
 ```
+
 </CodeGroup>
 
 ## Go-Live Checklist
 
-- [ ] Bank account validation working for all target currencies
-- [ ] Deposit address generation tested in sandbox
-- [ ] End-to-end flow verified with test transfers
-- [ ] Webhook handlers for all deposit and trade events
-- [ ] Error handling for insufficient funds and invalid addresses
-- [ ] Banking cutoff times documented for customer communication
-- [ ] Retry logic for failed bank transfers
-
-<Warning>
-  Always verify the deposit address network matches the network the customer will send on. Sending USDT on the wrong network (e.g., sending TRC-20 to an ERC-20 address) will result in lost funds.
-</Warning>
+- Bank account validation working for all target currencies
+- Deposit address generation tested in sandbox
+- End-to-end flow verified with test transfers
+- Webhook handlers for all deposit and trade events
+- Error handling for insufficient funds and invalid addresses
+- Banking cutoff times documented for customer communication
+- Retry logic for failed bank transfers
 
 <Note>
   Banking cutoff times vary by currency and institution. EUR SEPA transfers typically process until 3:00 PM CET. USD ACH transfers have a 5:00 PM ET cutoff. Communicate these timelines to your customers.

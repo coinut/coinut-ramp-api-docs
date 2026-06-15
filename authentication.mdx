@@ -11,14 +11,6 @@ Every request to the Coinut Partner Ramp API must be cryptographically signed us
   Never expose your API Secret in client-side code, frontend applications, or public repositories. It must remain server-side only.
 </Warning>
 
-<Warning>
-  Never expose your API Secret in client-side code, frontend applications, or public repositories. It must remain server-side only.
-</Warning>
-
-<Warning>
-  Never expose your API Secret in client-side code, frontend applications, or public repositories. It must remain server-side only.
-</Warning>
-
 ## Required Headers
 
 Include these four headers in every authenticated request:
@@ -34,26 +26,9 @@ Include these four headers in every authenticated request:
   The latest machine-readable contract also declares an `X-API-Secret` security scheme, but the narrative signing instructions only require `X-API-Key`, `X-Timestamp`, `X-Nonce`, and `X-Signature`. Confirm the expected header set in sandbox before production rollout.
 </Note>
 
-<Note>
-  The latest machine-readable contract also declares an `X-API-Secret` security scheme, but the narrative signing instructions only require `X-API-Key`, `X-Timestamp`, `X-Nonce`, and `X-Signature`. Confirm the expected header set in sandbox before production rollout.
-</Note>
-
-<Note>
-  The latest machine-readable contract also declares an `X-API-Secret` security scheme, but the narrative signing instructions only require `X-API-Key`, `X-Timestamp`, `X-Nonce`, and `X-Signature`. Confirm the expected header set in sandbox before production rollout.
-</Note>
-
 ## How to Generate the Signature
 
-<Steps>
-</Steps>
-
-<Steps>
-</Steps>
-
-<Steps>
-</Steps>
-
-## Signature Generation — Code Examples
+## Signature Generation  Code Examples
 
 <CodeGroup>
 
@@ -493,32 +468,3 @@ curl -X POST https://ramp-sandbox.hexarails.ai/ip-white-list \
     "ipWhiteList": ["115.236.134.118", "47.89.58.120"]
   }'
 ```
-
-## API Environments
-
-| Environment | Base URL | Use Case |
-| --- | --- | --- |
-| **Sandbox** | `https://ramp-sandbox.hexarails.ai` | Development and testing |
-| **Production** | `https://ramp.hexarails.ai` | Live transactions |
-
-<Warning>
-  API keys are environment-specific. A sandbox key will not work in production.
-</Warning>
-
-| Environment | Base URL | Use Case |
-| --- | --- | --- |
-| **Sandbox** | `https://ramp-sandbox.hexarails.ai` | Development and testing |
-| **Production** | `https://ramp.hexarails.ai` | Live transactions |
-
-<Warning>
-  API keys are environment-specific. A sandbox key will not work in production.
-</Warning>
-
-| Environment | Base URL | Use Case |
-| --- | --- | --- |
-| **Sandbox** | `https://ramp-sandbox.hexarails.ai` | Development and testing |
-| **Production** | `https://ramp.hexarails.ai` | Live transactions |
-
-<Warning>
-  API keys are environment-specific. A sandbox key will not work in production.
-</Warning>

@@ -17,14 +17,17 @@ A Virtual Account provides a unique set of banking details for each customer:
 ## Supported Currencies
 
 | Currency | Account Format | Key Fields | Geographic Focus |
-|----------|---------------|------------|-----------------|
-| AUD | BSB + Account Number | `payId`, `bsb`, `accountNumber` | Australia |
+| --- | --- | --- | --- |
+| AUD | BSB \+ Account Number | `payId`, `bsb`, `accountNumber` | Australia |
 | EUR | IBAN | `iban`, `swift` | Europe |
 | GBP | IBAN / Sort Code | `iban`, `swift` | United Kingdom |
+| SGD | Local Account Number | `accountNumber`, `bankName`, `bankAddress` | Singapore |
+| USD | Local Account Number / Wire Instructions | `accountNumber`, `bankName`, `bankAddress` | USA |
+| Other currencies | Subject to partner enablement | Contact Coinut support for the exact banking fields | Varies by corridor |
 
 ## VA Lifecycle
 
-```
+```text
 PENDING → VERIFIED (after compliance review)
 ```
 
@@ -37,7 +40,7 @@ A VA starts in `PENDING` status after creation. Once compliance review completes
 </ParamField>
 
 <ParamField body="currency" type="string" required>
-  The fiat currency: `AUD`, `EUR`, or `GBP`
+  The fiat currency: `AUD`, `EUR`, SG,USD or `GBP`
 </ParamField>
 
 <ParamField body="whitelist" type="object[]">
@@ -89,26 +92,9 @@ PayID is an email-address-style identifier for instant bank transfers in Austral
 - **Speed**: Near-instant (via NPP/Osko)
 - **Availability**: 24/7, including weekends
 
-### Banks Supporting PayID
-
-Major Australian banks supporting PayID/Osko include:
-
-- Commonwealth Bank
-- ANZ
-- NAB
-- Westpac
-- ING
-- Macquarie Bank
-- Bendigo Bank
-- Suncorp Bank
-
-<Note>
-  Some smaller credit unions and building societies may not support PayID yet. Always display BSB + Account Number as a fallback.
-</Note>
-
 ### Display Format
 
-```
+```text
 PayID: john.doe@example.com
 BSB: 062000
 Account: 12345678
@@ -120,7 +106,7 @@ For European and UK customers, VAs use IBAN format:
 
 ### EUR (SEPA)
 
-```
+```text
 IBAN: DE89370400440532013000
 SWIFT/BIC: COINUTDEFF
 ```
@@ -129,9 +115,9 @@ SWIFT/BIC: COINUTDEFF
 - Settlement typically 1 business day
 - Available for EU/EEA customers
 
-### GBP (Faster Payments / BACS)
+### GBP (Faster Payments )
 
-```
+```text
 IBAN: GB29NWBK60161331926819
 SWIFT/BIC: COINUTGB2L
 Sort Code: 60-16-13 (if applicable)
@@ -146,7 +132,7 @@ Sort Code: 60-16-13 (if applicable)
 AUD virtual accounts support a whitelist that restricts which bank accounts can send funds. This adds an extra layer of compliance control.
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
+| --- | --- | --- |
 | `/virtual-account/create-aud-whitelist` | `POST` | Create a new whitelist for an AUD VA |
 | `/virtual-account/update-aud-whitelist` | `POST` | Update an existing whitelist |
 | `/virtual-account/get-aud-whitelist` | `GET` | Retrieve the current whitelist |
@@ -173,7 +159,7 @@ When a whitelist is active, deposits from non-whitelisted accounts may be reject
 
 ## Best Practices
 
-- **One VA per customer per currency**. Don't create multiple VAs for the same customer+currency pair.
+- **One VA per customer per currency**. Don't create multiple VAs for the same customer\+currency pair.
 - **Store VA details** in your database alongside the customer record for quick lookups.
 - **Display banking details clearly** with copy-to-clipboard buttons in your UI.
 - **Generate QR codes** for PayID to simplify mobile banking.
@@ -185,6 +171,7 @@ When a whitelist is active, deposits from non-whitelisted accounts may be reject
 Generate QR codes for PayID to let customers scan with their banking app.
 
 <CodeGroup>
+
 ```javascript Node.js
 // npm install qrcode
 const QRCode = require('qrcode');
@@ -367,12 +354,5 @@ curl -X POST https://ramp.hexarails.ai/virtual-account/create \
 #   "status": "PENDING"
 # }
 ```
+
 </CodeGroup>
-
-<Tip>
-  Virtual accounts are reusable. A customer can send multiple deposits to the same VA over time. There's no need to create a new VA for each deposit.
-</Tip>
-
-<Warning>
-  Virtual accounts are currency-specific. An AUD VA cannot receive EUR deposits, and vice versa. Create a separate VA for each currency your customers need.
-</Warning>
