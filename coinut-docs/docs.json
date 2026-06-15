@@ -1,10 +1,10 @@
 {
   "theme": "mint",
-  "name": "Coinut",
+  "name": "Coinut | Digital Asset Platform",
   "colors": {
-    "primary": "#0F172A",
-    "light": "#334155",
-    "dark": "#020617"
+    "primary": "#32408c",
+    "light": "#00d1a9",
+    "dark": "#4275b2"
   },
   "logo": {
     "light": "/images/logo-light.svg",
@@ -16,7 +16,7 @@
   "navbar": {
     "links": [
       {
-        "href": "mailto:api-support@coinut.com",
+        "href": "mailto:support@coinut.com",
         "label": "Support"
       }
     ]
@@ -25,7 +25,7 @@
     "socials": {
       "twitter": "https://twitter.com/coinut",
       "github": "https://github.com/coinut",
-      "linkedin": "https://linkedin.com/company/coinut"
+      "linkedin": "https://www.linkedin.com/company/coinut"
     }
   },
   "navigation": {
@@ -34,12 +34,12 @@
         {
           "anchor": "Dashboard",
           "icon": "layout-dashboard",
-          "href": "https://partner.coinut.com"
+          "href": "https://coinut.com/"
         },
         {
           "anchor": "Support",
           "icon": "life-ring",
-          "href": "mailto:api-support@coinut.com"
+          "href": "mailto:support@coinut.com"
         }
       ]
     },
@@ -145,5 +145,6 @@
         ]
       }
     ]
-  }
+  },
+  "description": "COINUT is Singapore's longest-running digital asset platform. Move value between fiat, stablecoins, and digital assets with institutional-grade compliance and reliability"
 }
