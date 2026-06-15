@@ -7,18 +7,28 @@ description: "Monitor customer deposits across fiat and crypto rails."
 
 <Steps>
   <Step title="RECEIVED">Deposit has been detected on-chain or via bank notification.</Step>
-  <Step title="Review Queue">Deposit enters one of four review paths:
+  <Step title="Review Queue">
+    Deposit enters one of four review paths:
+
     - `NAME_REVIEWING` — sender name verification in progress
     - `THRESHOLD_PENDING` — large deposit, awaiting threshold approval
     - `COMPLIANCE_REVIEWING` — compliance case review
     - `ACTION_REQUIRED` — manual action needed from partner
   </Step>
   <Step title="Resolution">
+
     - `CONFIRMED` — deposit cleared and available for conversion
     - `REFUNDING` → `REFUNDED` — funds being returned to sender
   </Step>
 </Steps>
 
+```
+RECEIVED → NAME_REVIEWING ───────────────→ CONFIRMED
+         → THRESHOLD_PENDING ─────────────→ CONFIRMED
+         → COMPLIANCE_REVIEWING ──→ CONFIRMED
+                                └─→ REFUNDING → REFUNDED
+         → ACTION_REQUIRED
+```
 
 | Status | Description |
 |--------|-------------|
