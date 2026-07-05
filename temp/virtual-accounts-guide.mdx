@@ -1,0 +1,159 @@
+---
+title: "Virtual Accounts Guide"
+description: "Deep dive into virtual accounts for fiat payment collection."
+---
+
+Virtual Accounts (VAs) are dedicated fiat bank accounts assigned to each customer for receiving payments. Funds deposited to a VA are automatically linked to that customer's deposits in the Coinut system.
+
+## What is a Virtual Account?
+
+A Virtual Account provides a unique set of banking details for each customer:
+
+- Customer sends fiat to their dedicated VA
+- Coinut detects the incoming transfer
+- Funds are automatically associated with the correct customer
+- No manual reconciliation needed
+
+## Supported Currencies
+
+| Currency | Account Format | Key Fields | Geographic Focus |
+| --- | --- | --- | --- |
+| AUD | BSB \+ Account Number | `payId`, `bsb`, `accountNumber` | Australia |
+| EUR | IBAN | `iban`, `swift` | Europe |
+| GBP | IBAN / Sort Code | `iban`, `swift` | United Kingdom |
+| SGD / USD | Corridor-specific | Confirm exact receiving fields with Coinut before shipping UX | Enabled in the current create schema but not fully described in narrative guides |
+
+## VA Lifecycle
+
+```text
+PENDING → VERIFIED (after compliance review)
+```
+
+A VA starts in `PENDING` status after creation. Once compliance review completes, it transitions to `VERIFIED`. Deposits can typically be received while `PENDING`, but may be held until verification completes.
+
+## Creating VAs
+
+<ParamField body="customerId" type="string" required>
+  The customer ID returned from `POST /customer/create`
+</ParamField>
+
+<ParamField body="currency" type="string" required>
+  The fiat currency for the requested virtual account. Current OpenAPI enum: `AUD`, `EUR`, `GBP`, `SGD`, `USD`.
+</ParamField>
+
+<ParamField body="whitelist" type="object">
+  For AUD only. Pre-registers one allowed sender bank account during VA creation. Uses `bsbNumber`, `accountNumber`, and optional `accountName`.
+</ParamField>
+
+```bash
+POST /virtual-account/create
+```
+
+```json
+{
+  "customerId": "cust_abc123",
+  "currency": "AUD",
+  "whitelist": {
+    "bsbNumber": "062000",
+    "accountNumber": "12345678",
+    "accountName": "Alice Smith"
+  }
+}
+```
+
+<ResponseField name="payId" type="string">
+  PayID address for AUD accounts (e.g., `john.doe@example.com`)
+</ResponseField>
+
+<ResponseField name="bsb" type="string">
+  BSB code for AUD accounts (e.g., `062000`)
+</ResponseField>
+
+<ResponseField name="accountNumber" type="string">
+  Account number for AUD accounts
+</ResponseField>
+
+<ResponseField name="iban" type="string">
+  IBAN for EUR and GBP accounts
+</ResponseField>
+
+<ResponseField name="swift" type="string">
+  SWIFT/BIC code for EUR and GBP accounts
+</ResponseField>
+
+## AUD Virtual Accounts & PayID
+
+PayID is an email-address-style identifier for instant bank transfers in Australia. It replaces the need to share BSB and account numbers.
+
+- **Format**: `john.doe@example.com`
+- **Speed**: Near-instant (via NPP/Osko)
+- **Availability**: 24/7, including weekends
+
+### Display Format
+
+```text
+PayID: john.doe@example.com
+BSB: 062000
+Account: 12345678
+```
+
+## EUR/GBP Virtual Accounts
+
+For European and UK customers, VAs use IBAN format:
+
+### EUR (SEPA)
+
+```text
+IBAN: DE89370400440532013000
+SWIFT/BIC: COINUTDEFF
+```
+
+- Supports SEPA transfers
+- Settlement typically 1 business day
+- Available for EU/EEA customers
+
+### GBP (Faster Payments / BACS)
+
+```text
+IBAN: GB29NWBK60161331926819
+SWIFT/BIC: COINUTGB2L
+Sort Code: 60-16-13 (if applicable)
+```
+
+- Supports Faster Payments (near-instant, up to GBP 1M)
+- Supports BACS (3 business days)
+- Settlement typically 1 business day
+
+## Whitelist Management (AUD Only)
+
+AUD virtual accounts support a whitelist that restricts which bank accounts can send funds. This adds an extra layer of compliance control.
+
+| Endpoint | Method | Description |
+| --- | --- | --- |
+| `/virtual-account/create-aud-whitelist` | `POST` | Create a new whitelist for an AUD VA |
+| `/virtual-account/update-aud-whitelist` | `POST` | Update an existing whitelist |
+| `/virtual-account/get-aud-whitelist` | `GET` | Retrieve the current whitelist |
+
+### Whitelist Format
+
+```json
+{
+  "vaId": "va_123",
+  "sourceAccount": {
+    "bsbNumber": "062000",
+    "accountNumber": "12345678",
+    "accountName": "Alice Smith"
+  }
+}
+```
+
+When a whitelist is active, deposits from non-whitelisted accounts may be rejected or held for manual review.
+
+## Best Practices
+
+- **One VA per customer per currency**. Don't create multiple VAs for the same customer\+currency pair.
+- **Store VA details** in your database alongside the customer record for quick lookups.
+- **Display banking details clearly** with copy-to-clipboard buttons in your UI.
+- **Generate QR codes** for PayID to simplify mobile banking.
+- **Monitor `DEPOSIT_RECEIVED`** webhook for incoming funds — don't rely on polling alone.
+- **Handle `ACTION_REQUIRED` deposits** — manual follow-up may be needed for some incoming transfers.

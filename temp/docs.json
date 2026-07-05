@@ -16,13 +16,6 @@
     "dark": "images/logo-dark.png"
   },
 
-  "api": {
-    "openapi": "openapi.json",
-    "playground": {
-      "display": "interactive"
-    }
-  },
-
   "navigation": {
     "tabs": [
       {
@@ -66,100 +59,61 @@
           {
             "group": "Common",
             "pages": [
-              "api/common-balance",
-              "api/common-basic-info",
-              "api/common-health",
-              "api/common-callback-url-get",
-              "api/common-callback-url-update",
-              "api/common-subscribed-events-get",
-              "api/common-subscribed-events-update",
-              "api/common-ip-whitelist-get",
-              "api/common-ip-whitelist-update"
+              "api-common"
             ]
           },
           {
             "group": "Customers",
             "pages": [
-              "api/customer-create",
-              "api/customer-detail",
-              "api/customer-list"
+              "api-customers"
             ]
           },
           {
             "group": "Virtual Accounts",
             "pages": [
-              "api/virtual-account-create",
-              "api/virtual-account-list",
-              "api/virtual-account-detail",
-              "api/virtual-account-create-whitelist",
-              "api/virtual-account-update-whitelist",
-              "api/virtual-account-get-whitelist"
+              "api-virtual-accounts"
             ]
           },
           {
             "group": "Crypto Addresses",
             "pages": [
-              "api/crypto-address-add",
-              "api/crypto-address-list",
-              "api/crypto-address-detail"
+              "api-crypto-addresses"
             ]
           },
           {
             "group": "Deposit Addresses",
             "pages": [
-              "api/deposit-address-create",
-              "api/deposit-address-list",
-              "api/deposit-address-detail"
+              "api-deposit-addresses"
             ]
           },
           {
             "group": "Bank Accounts",
             "pages": [
-              "api/bank-account-add",
-              "api/bank-account-list",
-              "api/bank-account-detail"
+              "api-bank-accounts"
             ]
           },
           {
             "group": "Autoramp",
             "pages": [
-              "api/autoramp-create",
-              "api/autoramp-onramp",
-              "api/autoramp-offramp",
-              "api/autoramp-list",
-              "api/autoramp-detail",
-              "api/autoramp-delete"
+              "api-autoramp"
             ]
           },
           {
             "group": "Deposits",
             "pages": [
-              "api/deposit-list",
-              "api/deposit-detail",
-              "api/deposit-submit-attachment"
+              "api-deposits"
             ]
           },
           {
             "group": "Trades",
             "pages": [
-              "api/trade-list",
-              "api/trade-detail"
+              "api-trades"
             ]
           },
           {
             "group": "Payments",
             "pages": [
-              "api/payment-estimate",
-              "api/payment-create",
-              "api/payment-detail",
-              "api/payment-list"
-            ]
-          },
-          {
-            "group": "Legacy",
-            "pages": [
-              "api/legacy-deposit-list",
-              "api/legacy-deposit-detail"
+              "api-payments"
             ]
           }
         ]
@@ -179,6 +133,12 @@
           "icon": "life-ring"
         }
       ]
+    }
+  },
+
+  "api": {
+    "mdxServer": {
+      "enabled": true
     }
   },
 
