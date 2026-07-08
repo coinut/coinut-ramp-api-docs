@@ -3,67 +3,233 @@ title: "Signature Verification"
 description: "Verify the HMAC-SHA256 signature on every Coinut webhook delivery."
 ---
 
-Every webhook delivery is signed with the same HMAC-SHA256 scheme documented on the [Authentication](authentication) page for incoming requests — using your API key/secret pair, not a separate webhook secret. The request carries the same four headers:
+To ensure a webhook notification is genuinely from Coinut, every delivery carries a signature in its request headers. Verify this signature before processing the payload.
 
-| Header | Description |
-| --- | --- |
-| `X-API-Key` | Your API key |
-| `X-Timestamp` | Unix timestamp in seconds, at send time |
-| `X-Nonce` | A random string, unique per delivery |
-| `X-Signature` | HMAC-SHA256 hex digest of the canonical string below |
+## Canonical String for Webhooks
 
-Build the same newline-delimited canonical string used for request signing, then verify it with HMAC-SHA256 using your API secret:
+The canonical string is built from these components, in exact order, newline-delimited:
 
 ```text
-POST
-<your host>
-<your webhook path>
-                          <- empty query-string segment
-sha256(raw request body)
-<X-Timestamp value>
-<X-Nonce value>
+<HTTP_METHOD>
+<HOST>
+<PATH>
+<QUERY_STRING>
+<SHA256_HEX_OF_BODY_OR_EMPTY>
+<X-Timestamp>
+<X-Nonce>
 ```
+
+| Component | Rule |
+| --- | --- |
+| `HTTP_METHOD` | Always `POST` for webhook notifications |
+| `HOST` | The host of your webhook endpoint (e.g. `your-domain.com`) |
+| `PATH` | The path of your webhook endpoint (e.g. `/api/webhook`) |
+| `QUERY_STRING` | The raw query string, without a leading `?`. Empty string if none. |
+| `SHA256_HEX_OF_BODY` | Lowercase hex SHA-256 hash of the request body |
+| `X-Timestamp` | Value from the `X-Timestamp` header |
+| `X-Nonce` | Value from the `X-Nonce` header |
+
+## Verification Process
+
+<Steps>
+  <Step title="Extract headers">
+    Read `X-Timestamp`, `X-Nonce`, and `X-Signature` from the request headers.
+  </Step>
+  <Step title="Hash the body">
+    Compute the SHA-256 hash of the raw request body.
+  </Step>
+  <Step title="Build the canonical string">
+    Join the components above with `\n`, in order.
+  </Step>
+  <Step title="Compute the expected signature">
+    `HMAC_SHA256(api_secret, canonical_string)`, lowercase hex.
+  </Step>
+  <Step title="Compare">
+    Compare the computed signature with `X-Signature` using a constant-time comparison. If they match, the webhook is authentic.
+  </Step>
+</Steps>
+
+<Note>
+  Use the same **API Secret** issued to you for request signing — there is no separate webhook secret. See [Authentication](authentication).
+</Note>
+
+## Example Implementations
 
 <CodeGroup>
 
-```javascript Node.js
-const crypto = require('crypto');
+```typescript Node.js (TypeScript)
+import crypto from "crypto";
 
-function verifyWebhookSignature(req, apiSecret) {
-  const { 'x-timestamp': timestamp, 'x-nonce': nonce, 'x-signature': signature } = req.headers;
-  const host = req.headers.host;
-  const path = req.path; // e.g. '/webhooks/coinut'
-  const bodyHash = crypto.createHash('sha256').update(JSON.stringify(req.body)).digest('hex');
+function verifyWebhookSignature({
+  method,
+  host,
+  path,
+  query = "",
+  body = "",
+  headers,
+  apiSecret,
+}: {
+  method: string;
+  host: string;
+  path: string;
+  query?: string;
+  body?: string;
+  headers: { [key: string]: string };
+  apiSecret: string;
+}): boolean {
+  // Extract required headers
+  const ts = headers["X-Timestamp"];
+  const nonce = headers["X-Nonce"];
+  const receivedSignature = headers["X-Signature"];
 
-  const canonical = ['POST', host, path, '', bodyHash, timestamp, nonce].join('\n');
-  const expected = crypto.createHmac('sha256', apiSecret).update(canonical).digest('hex');
+  if (!ts || !nonce || !receivedSignature) {
+    return false;
+  }
 
-  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+  // Compute body hash
+  const bodyHash = body ? crypto.createHash("sha256").update(body).digest("hex") : "";
+
+  // Construct canonical string
+  const canonical = [
+    method.toUpperCase(),
+    host,
+    path,
+    query,
+    bodyHash,
+    ts,
+    nonce,
+  ].join("\n");
+
+  // Compute expected signature
+  const expectedSignature = crypto
+    .createHmac("sha256", apiSecret)
+    .update(canonical)
+    .digest("hex");
+
+  // Compare signatures (constant time comparison)
+  return crypto.timingSafeEqual(
+    Buffer.from(receivedSignature, "hex"),
+    Buffer.from(expectedSignature, "hex")
+  );
 }
+
+// Example usage with Express
+import express from "express";
+
+const app = express();
+const API_SECRET = "your-api-secret";
+
+app.post("/api/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  const body = req.body.toString();
+  const signatureValid = verifyWebhookSignature({
+    method: req.method,
+    host: req.headers.host || "",
+    path: req.path,
+    query: req.query ? new URLSearchParams(req.query).toString() : "",
+    body,
+    headers: req.headers as { [key: string]: string },
+    apiSecret: API_SECRET,
+  });
+
+  if (signatureValid) {
+    // Process webhook payload
+    const payload = JSON.parse(body);
+    console.log("Webhook received and verified:", payload);
+    res.status(200).send({ status: "SUCCESS" });
+  } else {
+    // Invalid signature
+    console.error("Invalid webhook signature");
+    res.status(401).send({ status: "UNAUTHORIZED" });
+  }
+});
 ```
 
 ```python Python
 import hmac
 import hashlib
 import json
+from flask import Flask, request, Response
 
-def verify_webhook_signature(headers, body: dict, path: str, api_secret: str) -> bool:
-    timestamp = headers["X-Timestamp"]
-    nonce = headers["X-Nonce"]
-    signature = headers["X-Signature"]
-    host = headers["Host"]
+app = Flask(__name__)
+API_SECRET = b"your-api-secret"
 
-    body_hash = hashlib.sha256(json.dumps(body, separators=(",", ":")).encode()).hexdigest()
-    canonical = "\n".join(["POST", host, path, "", body_hash, timestamp, nonce])
-    expected = hmac.new(api_secret.encode(), canonical.encode(), hashlib.sha256).hexdigest()
+def verify_webhook_signature(method, host, path, query="", body=b"", headers={}, api_secret=b""):
+    """
+    Verify webhook signature using HMAC-SHA256
+    """
+    # Extract required headers
+    ts = headers.get("X-Timestamp")
+    nonce = headers.get("X-Nonce")
+    received_signature = headers.get("X-Signature")
 
-    return hmac.compare_digest(expected, signature)
+    if not ts or not nonce or not received_signature:
+        return False
+
+    # Compute body hash
+    body_hash = hashlib.sha256(body).hexdigest() if body else ""
+
+    # Construct canonical string
+    canonical = "\n".join([
+        method.upper(),
+        host,
+        path,
+        query,
+        body_hash,
+        ts,
+        nonce
+    ])
+
+    # Compute expected signature
+    expected_signature = hmac.new(
+        api_secret,
+        canonical.encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    # Compare signatures (constant time comparison)
+    return hmac.compare_digest(received_signature, expected_signature)
+
+@app.route("/api/webhook", methods=["POST"])
+def webhook_handler():
+    # Get raw body
+    body = request.get_data()
+
+    # Verify signature
+    signature_valid = verify_webhook_signature(
+        method=request.method,
+        host=request.host,
+        path=request.path,
+        query=request.query_string.decode() if request.query_string else "",
+        body=body,
+        headers=request.headers,
+        api_secret=API_SECRET
+    )
+
+    if signature_valid:
+        # Process webhook payload
+        payload = json.loads(body)
+        print(f"Webhook received and verified: {payload}")
+        return Response(json.dumps({"status": "SUCCESS"}), mimetype="application/json", status=200)
+    else:
+        # Invalid signature
+        print("Invalid webhook signature")
+        return Response(json.dumps({"status": "UNAUTHORIZED"}), mimetype="application/json", status=401)
+
+if __name__ == "__main__":
+    app.run(debug=True, port=3000)
 ```
 
 </CodeGroup>
 
 <Warning>
-  The exact JSON serialization of the body must match byte-for-byte on both sides for the body hash to match — verify against the **raw request body bytes** your framework received, not a value you've re-serialized after parsing, since key ordering or whitespace differences will produce a different hash.
+  The exact serialization of the body must match byte-for-byte on both sides for the body hash to match — hash the **raw request body bytes** your framework received, not a value you've re-serialized after parsing, since key ordering or whitespace differences will produce a different hash.
 </Warning>
 
-See [Webhooks](webhooks) for the full delivery, retry, and setup flow, and [Webhook Payload Examples](webhooks-payload-examples) for the exact payload shape each event carries.
+## Important Notes
+
+- Always use the same **API Secret** that was provided to you by Coinut — there is no separate webhook secret.
+- Implement timestamp validation to protect against replay attacks (e.g. reject requests where `X-Timestamp` is older than 5 minutes).
+- Use a constant-time comparison function (`crypto.timingSafeEqual`, `hmac.compare_digest`) to prevent timing attacks.
+- Keep your API Secret secure and never expose it in client-side code.
+
+See [Webhooks](webhooks) for the full delivery, retry, and setup flow, and [Payload Example](webhooks-payload-examples) for the exact payload shape each event carries.

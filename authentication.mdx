@@ -22,9 +22,37 @@ Include these four headers in every authenticated request:
   The latest machine-readable contract also declares an `X-API-Secret` security scheme, but the narrative signing instructions only require `X-API-Key`, `X-Timestamp`, `X-Nonce`, and `X-Signature`. Confirm the expected header set in sandbox before production rollout.
 </Note>
 
-## How to Generate the Signature
+## Canonical String Format
 
-## Signature Generation  Code Examples
+Build the canonical string from these parts, joined with newlines, then sign it with HMAC-SHA256:
+
+```text
+METHOD
+HOST
+PATH
+QUERY
+BODY_SHA256_HEX
+TIMESTAMP
+NONCE
+```
+
+| Part | Description |
+| --- | --- |
+| `METHOD` | Uppercase HTTP method, e.g. `GET`, `POST` |
+| `HOST` | Request host, e.g. `ramp-sandbox.hexarails.ai` |
+| `PATH` | Request path only, no query string, e.g. `/balance` |
+| `QUERY` | Raw query string **without** a leading `?`, e.g. `currency=USDT&network=TRX`. Parameters are **not** re-ordered or normalized — use them exactly as they appear in the URL. |
+| `BODY_SHA256_HEX` | For JSON requests: serialize the body to a JSON string, then compute its SHA-256 hash and encode as lowercase hex. For requests with no body (`GET`) or `multipart/form-data` requests, use an empty string. |
+| `TIMESTAMP` | Same value as the `X-Timestamp` header |
+| `NONCE` | Same value as the `X-Nonce` header |
+
+The signature itself is:
+
+```text
+X-Signature = HMAC_SHA256_HEX(apiSecret, canonicalString)
+```
+
+## Signature Generation Code Examples
 
 <CodeGroup>
 
