@@ -33,7 +33,8 @@
             "pages": [
               "index",
               "quickstart",
-              "authentication"
+              "authentication",
+              "integration-journey"
             ]
           },
           {
