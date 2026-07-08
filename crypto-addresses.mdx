@@ -1,6 +1,59 @@
 ---
 title: "Crypto Addresses"
-description: "Registering and managing customer crypto addresses."
+description: "Registering customer crypto addresses and understanding deposit addresses."
 ---
 
-Content coming soon.
+Two distinct address types cover the crypto side of a flow: **crypto addresses** (a customer's own wallet — the exit point for onramp) and **deposit addresses** (a Coinut-issued receiving address — the entry point for offramp). They are separate resources with separate lifecycles.
+
+## Crypto Addresses (Onramp Exit)
+
+A crypto address is the customer's own wallet — where converted crypto is sent after an onramp deposit settles.
+
+Call [`POST /crypto-address/add`](api/crypto-address-add):
+
+```json
+{
+  "customerId": "6ac34182-aa2e-4290-ab1b-302a09f451d1",
+  "currency": "USDT",
+  "address": "0x1234567890123456789012345678901234567890",
+  "label": "My Wallet",
+  "network": "ETH"
+}
+```
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `customerId` | Yes | Must belong to a `CONFIRMED` customer |
+| `currency` | Yes | `USDT` or `USDC` |
+| `address` | Yes | Destination wallet address |
+| `label` | Yes | Display label |
+| `network` | No | `ETH` (ERC-20), `TRX` (TRC-20), or `MATIC` (Polygon) |
+
+Crypto addresses have **no approval step** — there is no `status` field on this resource, unlike deposit addresses below. The address is usable immediately after creation.
+
+See [`GET /crypto-address/list`](api/crypto-address-list) and [`GET /crypto-address/detail`](api/crypto-address-detail) to look up existing addresses.
+
+## Deposit Addresses (Offramp Entry)
+
+A deposit address is a Coinut-generated receiving address — where a customer sends crypto to trigger an offramp. It's created automatically when you call [`POST /autoramp-flow/offramp`](api/autoramp-offramp) (see [Autoramp Flows](autoramp-flows)), or directly via [`POST /deposit-address/create`](api/deposit-address-create).
+
+Unlike crypto addresses, deposit addresses go through an **approval step** and carry a `status`:
+
+| Status | Meaning |
+| --- | --- |
+| `PENDING` | Just created — `address` is **not yet populated** |
+| `VERIFIED` | Approved — `address` is populated and safe to display |
+| `REJECTED` | Rejected — do not display, contact support |
+| `DELETED` | Removed |
+
+<Warning>
+  A newly created deposit address starts `PENDING` with `address: null`. It is **not** available synchronously — poll [`GET /deposit-address/detail`](api/deposit-address-detail) or listen for the `DEPOSIT_ADDRESS_APPROVED` webhook, and only show the address to the customer once `status` leaves `PENDING` and `address` is populated.
+</Warning>
+
+Supported networks: `ETH` and `TRX` today. `MATIC` is accepted by the schema but not yet supported end-to-end — don't offer it to customers.
+
+## Related
+
+- [Bank Accounts](bank-accounts) — the fiat-side equivalent for offramp payouts
+- [Autoramp Flows](autoramp-flows) — links an address to automatic conversion
+- [Webhooks](webhooks) — `DEPOSIT_ADDRESS_APPROVED`, `DEPOSIT_ADDRESS_REJECTED` events

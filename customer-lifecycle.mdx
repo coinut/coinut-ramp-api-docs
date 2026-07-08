@@ -3,4 +3,61 @@ title: "Customer Lifecycle"
 description: "Customer statuses, KYC, and onboarding concepts."
 ---
 
-Content coming soon.
+Every onramp, offramp, virtual account, and bank/crypto address is scoped to a customer. Create the customer once, then reference its `id` in every subsequent call.
+
+## Creating a Customer
+
+Call [`POST /customer/create`](api/customer-create):
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "type": "DEPOSITOR",
+  "isIndividual": true,
+  "externalId": "user_12345"
+}
+```
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `name` | Yes | Customer name |
+| `email` | Yes | Customer email |
+| `type` | No | `DEPOSITOR` or `PAYEE` |
+| `isIndividual` | No | Individual vs. corporate customer |
+| `sumsubShareToken` | No | If provided, KYC data is pulled via the Sumsub API directly instead of returning a hosted `sumsubLink` — don't provide both |
+| `externalId` | No | Your own internal user ID, for reconciliation |
+
+<Tip>
+  Always set `externalId` to your internal user ID. It's echoed back on customer records and webhook payloads, which makes reconciliation and webhook routing far simpler than matching on Coinut's `id` alone.
+</Tip>
+
+The response includes the new customer's `id` and, unless `sumsubShareToken` was provided, a `sumsubLink` for hosted KYC verification.
+
+## KYC & Status Transitions
+
+```text
+PENDING → CONFIRMED | REJECTED
+              ↓
+           DELETED
+```
+
+| Status | Meaning |
+| --- | --- |
+| `PENDING` | Customer created, KYC not yet complete |
+| `CONFIRMED` | KYC approved — customer can transact |
+| `REJECTED` | KYC failed (see `remark` for reason) |
+| `DELETED` | Customer removed |
+
+Track the transition to `CONFIRMED` one of two ways:
+
+- **Webhook (recommended)** — subscribe to `CUSTOMER_APPROVED` / `CUSTOMER_REJECTED` / `CUSTOMER_DELETED`. See [Webhooks](webhooks) and [Payload Examples](webhooks-payload-examples).
+- **Polling** — call [`GET /customer/detail`](api/customer-detail) with `id`, `email`, or `externalId`.
+
+Do not attempt to create virtual accounts, bank accounts, crypto addresses, or autoramp flows for a customer until they reach `CONFIRMED` — those calls will fail against a `PENDING` customer.
+
+## Related
+
+- [Crypto Addresses](crypto-addresses) and [Bank Accounts](bank-accounts) — registered once a customer is `CONFIRMED`
+- [Autoramp Flows](autoramp-flows) — the onramp/offramp flows a customer is connected to
+- [`GET /customer/list`](api/customer-list) — paginated customer listing with status/name filters

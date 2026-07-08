@@ -1,615 +1,112 @@
 ---
 title: "Onramp Integration"
-description: "Complete guide to implementing fiat-to-crypto onramp flows."
+description: "Convert fiat into cryptocurrency via a virtual account and autoramp flow."
 ---
 
-Onramp lets your customers convert fiat currency into cryptocurrency. This guide covers the full implementation from customer creation to crypto settlement.
+## Use Case
 
-## What is Onramp?
+Enable customers to onramp **fiat into cryptocurrency** (`USDT`, `USDC`). This works by spinning up a virtual account tied to an autoramp rule that automatically converts and forwards incoming fiat to a crypto address.
 
-Onramp lets your customers convert fiat currency (`AUD`, `EUR`, `GBP`, `SGD`, `USD` — a closed set) into cryptocurrency (`USDT`, `USDC`). The flow works like this:
+Examples:
 
-1. Customer sends fiat to a virtual account
-2. Coinut detects the deposit
-3. Coinut executes the trade
-4. Crypto arrives at the customer's wallet or your designated wallet address
+- Create an **AUD virtual account** which converts to USDT on TRX for wallet address 1
+- Create a **EUR virtual account** which converts to USDC on Ethereum for wallet address 2
 
-## Architecture
-
-```text
-Partner App -> Coinut API -> Sumsub (KYC) -> Autoramp -> Trade -> Crypto Transfer
-```
-
-## Step-by-Step Implementation
+## Example Flow
 
 <Steps>
-  <Step title="Create Customer">
-    Call [`POST /customer/create`](api/customer-create) with name, email, `type="DEPOSITOR"`, and `isIndividual=true`.
-
-    ```json
-    {
-      "name": "John Doe",
-      "email": "john@example.com",
-      "type": "DEPOSITOR",
-      "isIndividual": true,
-      "externalId": "user_12345"
-    }
-    ```
-
-    Store the returned `id` — that's the customer identifier for every subsequent call. The customer receives a KYC link via email to complete identity verification.
+  <Step title="Set up the flow">
+    Partner creates an onramp autoramp flow for a customer, linking a new AUD virtual account to the customer's USDT wallet on TRX.
   </Step>
-  <Step title="Wait for KYC Approval">
-    Listen for the `CUSTOMER_APPROVED` webhook event. You can also poll [`GET /customer/detail`](api/customer-detail) to check status.
-
-    Customer status transitions: `PENDING` → `CONFIRMED` | `REJECTED` (a customer can also end up `DELETED`).
+  <Step title="Customer sends fiat">
+    Customer transfers AUD 1,000 into the virtual account via bank transfer or PayID.
   </Step>
-  <Step title="Add Crypto Address">
-    Call [`POST /crypto-address/add`](api/crypto-address-add) with:
-
-    - `customerId`
-    - `currency` — `"USDT"` or `"USDC"`
-    - `address` — the customer's wallet address
-    - `label` — a display label
-    - `network` — optional; `"ETH"` for ERC-20, `"TRX"` for TRC-20, or `"MATIC"` for Polygon
-
-    Store the returned `id`. You'll need it for the autoramp flow.
+  <Step title="Coinut converts">
+    Coinut detects the deposit, confirms it, and executes the trade automatically.
   </Step>
-  <Step title="Create Autoramp Flow">
-    Call [`POST /autoramp-flow/onramp`](api/autoramp-onramp) with the fiat source and crypto destination:
-
-    ```json
-    {
-      "from": {
-        "customerId": "cust_abc123",
-        "currency": "AUD"
-      },
-      "to": "crypto_address_id_from_step_3"
-    }
-    ```
-
-    This links the virtual account deposits to automatic crypto conversion.
+  <Step title="Crypto arrives">
+    ~998 USDT is delivered to the customer's registered wallet.
   </Step>
-  <Step title="Display VA to Customer">
-    Show the virtual account details from [`GET /virtual-account/detail`](api/virtual-account-detail) in your UI. There's a single `bicSwift` field for every currency — it carries the BSB number for AUD and the SWIFT/BIC code for everything else. There's no separate "sort code" field.
-
-    - **AUD**: Display `payId` (e.g., `john.doe@example.com`), `bicSwift` (BSB), and `accountNumber`
-    - **EUR / GBP / SGD / USD**: Display `iban` and `bicSwift` (SWIFT/BIC)
-    - **other currencies** : Contact Coinut support for the exact banking fields
-
-    Generate a QR code for PayID to simplify mobile banking transfers.
-  </Step>
-  <Step title="Monitor Deposits">
-    Listen for webhooks:
-
-    - `DEPOSIT_RECEIVED` — funds detected
-    - `DEPOSIT_APPROVED` — funds cleared
-
-    Or poll [`GET /deposit/list`](api/deposit-list) with the customer ID.
-  </Step>
-  <Step title="Track Trade">
-    After deposit approval, listen for:
-
-    - `TRADE_CREATED` — trade initiated
-    - `TRADE_SETTLED` — trade complete, crypto sent
-
-    Or poll [`GET /trade/list`](api/trade-list).
-  </Step>
-  <Step title="Confirm Settlement">
-    There's no top-level `txHash` field. Once the crypto has been broadcast, the `TRADE_SETTLED` payload includes a nested `withdrawal.txId` — use that to verify the transaction on-chain:
-
-    - ERC-20: `https://etherscan.io/tx/{withdrawal.txId}`
-    - TRC-20: `https://tronscan.org/#/transaction/{withdrawal.txId}`
-
-    `withdrawal` may be absent on the first delivery of `TRADE_SETTLED` if the broadcast hasn't completed yet — treat it as optional and don't assume it's always present.
+  <Step title="Repeatable">
+    The customer can deposit again at any time — the virtual account and flow are persistent.
   </Step>
 </Steps>
 
-## Complete Code Example
+## Prerequisites
 
-<CodeGroup>
+Every step must complete before moving to the next.
 
-```javascript Node.js
-const axios = require('axios');
-const crypto = require('crypto');
+<Steps>
+  <Step title="Customer is CONFIRMED">
+    The customer must have completed KYC. See [Customer Lifecycle](customer-lifecycle).
+  </Step>
+  <Step title="Register the destination wallet">
+    Register the customer's crypto wallet via [Crypto Addresses](crypto-addresses). The `to` field in the onramp flow must match an address already registered for this customer.
+  </Step>
+  <Step title="(Optional) Preview the rate">
+    Call [`GET /autoramp-flow/trade-preview`](api/autoramp-trade-preview) with `fromCurrency`, `toCurrency`, and `amount` for an indicative rate. This is a live estimate, not a locked quote — the flow always executes at the rate current when the deposit clears.
+  </Step>
+</Steps>
 
-const BASE_URL = 'https://ramp.hexarails.ai';
-const API_KEY = process.env.COINUT_API_KEY;
-const API_SECRET = process.env.COINUT_API_SECRET;
+## Implementation
 
-// ── Authentication Helper ─────────────────────────────
-// `query` must be the exact query string sent on the wire (no leading '?'),
-// e.g. 'customerId=abc123'. Pass '' for requests with no query parameters —
-// omitting it (or hardcoding '') for a GET request that DOES have query
-// parameters will produce a signature the server rejects.
-function createSignature(method, path, query = '', body = {}) {
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const nonce = crypto.randomUUID();
-  const host = new URL(BASE_URL).host;
-  const requestBody = method.toUpperCase() === 'GET' ? '' : JSON.stringify(body);
-  const bodyHash = requestBody
-    ? crypto.createHash('sha256').update(requestBody).digest('hex')
-    : '';
-  const canonical = [
-    method.toUpperCase(),
-    host,
-    path,
-    query,
-    bodyHash,
-    timestamp,
-    nonce,
-  ].join('\n');
-  const signature = crypto.createHmac('sha256', API_SECRET).update(canonical).digest('hex');
-  return { timestamp, nonce, signature };
-}
+Create the onramp flow with [`POST /autoramp-flow/onramp`](api/autoramp-onramp). The virtual account is created automatically from `from`.
 
-async function coinutRequest(method, path, { query = '', body } = {}) {
-  const { timestamp, nonce, signature } = createSignature(method, path, query, body);
+### Request fields
 
-  // Resolve to the response BODY (the `{status, data}` envelope), not the
-  // raw axios response — every caller below destructures `.data` off this.
-  const response = await axios({
-    method,
-    url: `${BASE_URL}${path}${query ? '?' + query : ''}`,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
-      'X-Timestamp': timestamp,
-      'X-Nonce': nonce,
-      'X-Signature': signature,
-    },
-    data: body,
-  });
-  return response.data;
-}
+| Field | Required | Description |
+| --- | --- | --- |
+| `from.customerId` | Yes | The customer's `id` |
+| `from.currency` | Yes | Fiat currency for the new virtual account: `AUD`, `EUR`, `GBP`, `SGD`, or `USD` |
+| `to` | Yes | An existing [crypto address](crypto-addresses) `id` for this customer |
 
-// ── Step 1: Create Customer ──────────────────────────
-async function createCustomer(name, email, externalId) {
-  const { data } = await coinutRequest('POST', '/customer/create', {
-    body: {
-      name,
-      email,
-      type: 'DEPOSITOR',
-      isIndividual: true,
-      externalId, // Links to your internal user system
-    },
-  });
-  return data.id;
-}
+### Request
 
-// ── Step 3: Create Virtual Account, then fetch its banking details ──
-async function createVirtualAccount(customerId, currency) {
-  const { data: created } = await coinutRequest('POST', '/virtual-account/create', {
-    body: { customerId, currency }, // currency: 'AUD' | 'EUR' | 'GBP' | 'SGD' | 'USD'
-  });
-  // The create response only contains `id` — fetch the detail record for
-  // payId / accountNumber / iban / bicSwift.
-  const { data: detail } = await coinutRequest('GET', '/virtual-account/detail', {
-    query: `id=${created.id}`,
-  });
-  return detail;
-}
-
-// ── Step 4: Add Crypto Address ───────────────────────
-async function addCryptoAddress(customerId, address, network) {
-  const { data } = await coinutRequest('POST', '/crypto-address/add', {
-    body: {
-      customerId,
-      currency: 'USDT', // 'USDT' or 'USDC'
-      address,
-      label: 'Customer Wallet',
-      network, // optional: 'ETH', 'TRX', or 'MATIC'
-    },
-  });
-  return data.id;
-}
-
-// ── Step 5: Create Onramp Flow ───────────────────────
-async function createOnrampFlow(customerId, fiatCurrency, cryptoAddressId) {
-  const { data } = await coinutRequest('POST', '/autoramp-flow/onramp', {
-    body: {
-      from: {
-        customerId,
-        currency: fiatCurrency,
-      },
-      to: cryptoAddressId,
-    },
-  });
-  return data;
-}
-
-// ── Full Onramp Orchestration ────────────────────────
-async function executeOnramp(user) {
-  try {
-    // 1. Create customer
-    const customerId = await createCustomer(user.name, user.email, user.id);
-    console.log('Customer created:', customerId);
-
-    // 2. Wait for KYC approval (webhook or polling)
-    // See webhook handler below
-
-    // 3. Create virtual account and fetch its banking details
-    const va = await createVirtualAccount(customerId, 'AUD');
-    console.log('VA created:', va.payId);
-
-    // 4. Add crypto address
-    const cryptoAddressId = await addCryptoAddress(
-      customerId,
-      user.walletAddress,
-      'TRX' // TRC-20
-    );
-
-    // 5. Create autoramp flow
-    const flow = await createOnrampFlow(customerId, 'AUD', cryptoAddressId);
-    console.log('Onramp flow created:', flow.id);
-
-    return {
-      customerId,
-      virtualAccountId: va.id,
-      payId: va.payId,
-      bicSwift: va.bicSwift, // BSB for AUD, SWIFT/BIC for other currencies
-      accountNumber: va.accountNumber,
-      flowId: flow.id,
-    };
-  } catch (error) {
-    console.error('Onramp failed:', error.response?.data || error.message);
-    throw error;
-  }
-}
-
-// ── Webhook Handler ──────────────────────────────────
-// Note: verify the X-Signature header (see the Webhooks page) before
-// trusting req.body in production — omitted here for brevity.
-const express = require('express');
-const app = express();
-app.use(express.json());
-
-app.post('/webhooks/coinut', (req, res) => {
-  const { event, payload } = req.body;
-
-  switch (event) {
-    case 'CUSTOMER_APPROVED':
-      console.log('Customer KYC approved:', payload.id);
-      // Proceed to create VA and flow
-      break;
-
-    case 'DEPOSIT_RECEIVED':
-      console.log('Deposit received:', payload.amount, payload.currency);
-      break;
-
-    case 'DEPOSIT_APPROVED':
-      console.log('Deposit approved, trade will execute');
-      break;
-
-    case 'TRADE_SETTLED':
-      console.log('Trade settled! TX id:', payload.withdrawal?.txId);
-      // Notify customer
-      break;
-
-    case 'CUSTOMER_REJECTED':
-      console.log('Customer KYC rejected:', payload.id);
-      break;
-  }
-
-  res.status(200).send('OK');
-});
-
-app.listen(3000, () => console.log('Webhook server listening on port 3000'));
-```
-
-```python Python
-import os
-import json
-import hmac
-import hashlib
-import time
-import uuid
-import requests
-
-BASE_URL = "https://ramp.hexarails.ai"
-API_KEY = os.environ["COINUT_API_KEY"]
-API_SECRET = os.environ["COINUT_API_SECRET"]
-
-
-def create_signature(method: str, path: str, query: str = "", body: dict = None):
-    # `query` must be the exact query string sent on the wire (no leading '?').
-    # Hardcoding "" here for a GET request that has query parameters will
-    # produce a signature the server rejects.
-    timestamp = str(int(time.time()))
-    nonce = str(uuid.uuid4())
-    host = "ramp.hexarails.ai"
-    request_body = "" if method.upper() == "GET" else json.dumps(body or {}, separators=(",", ":"))
-    body_hash = hashlib.sha256(request_body.encode()).hexdigest() if request_body else ""
-    canonical = "\n".join([method.upper(), host, path, query, body_hash, timestamp, nonce])
-    signature = hmac.new(
-        API_SECRET.encode(), canonical.encode(), hashlib.sha256
-    ).hexdigest()
-    return timestamp, nonce, signature
-
-
-def coinut_request(method: str, path: str, query: str = "", body: dict = None):
-    timestamp, nonce, signature = create_signature(method, path, query, body)
-
-    headers = {
-        "Content-Type": "application/json",
-        "X-API-Key": API_KEY,
-        "X-Timestamp": timestamp,
-        "X-Nonce": nonce,
-        "X-Signature": signature,
-    }
-
-    url = f"{BASE_URL}{path}" + (f"?{query}" if query else "")
-    resp = requests.request(method, url, json=body, headers=headers)
-    resp.raise_for_status()
-    return resp.json()
-
-
-def create_customer(name: str, email: str, external_id: str) -> str:
-    resp = coinut_request("POST", "/customer/create", body={
-        "name": name,
-        "email": email,
-        "type": "DEPOSITOR",
-        "isIndividual": True,
-        "externalId": external_id,
-    })
-    return resp["data"]["id"]
-
-
-def create_virtual_account(customer_id: str, currency: str) -> dict:
-    created = coinut_request("POST", "/virtual-account/create", body={
-        "customerId": customer_id,
-        "currency": currency,
-    })
-    # Create only returns `id` — fetch detail for payId / accountNumber / bicSwift / iban.
-    detail = coinut_request("GET", "/virtual-account/detail", query=f"id={created['data']['id']}")
-    return detail["data"]
-
-
-def add_crypto_address(customer_id: str, address: str, network: str) -> str:
-    resp = coinut_request("POST", "/crypto-address/add", body={
-        "customerId": customer_id,
-        "currency": "USDT",
-        "address": address,
-        "label": "Customer Wallet",
-        "network": network,
-    })
-    return resp["data"]["id"]
-
-
-def create_onramp_flow(customer_id: str, fiat_currency: str, crypto_address_id: str):
-    return coinut_request("POST", "/autoramp-flow/onramp", body={
-        "from": {"customerId": customer_id, "currency": fiat_currency},
-        "to": crypto_address_id,
-    })
-
-
-def execute_onramp(user: dict):
-    customer_id = create_customer(user["name"], user["email"], user["id"])
-    va = create_virtual_account(customer_id, "AUD")
-    crypto_address_id = add_crypto_address(customer_id, user["wallet"], "TRX")
-    flow = create_onramp_flow(customer_id, "AUD", crypto_address_id)
-
-    return {
-        "customerId": customer_id,
-        "payId": va["payId"],
-        "flowId": flow["data"]["id"],
-    }
-```
-
-```typescript TypeScript
-import axios, { AxiosRequestConfig } from 'axios';
-import * as crypto from 'crypto';
-
-const BASE_URL = 'https://ramp.hexarails.ai';
-const API_KEY = process.env.COINUT_API_KEY!;
-const API_SECRET = process.env.COINUT_API_SECRET!;
-
-// `query` must be the exact query string sent on the wire (no leading '?').
-// Hardcoding '' here for a GET request that has query parameters will
-// produce a signature the server rejects.
-function createSignature(
-  method: string,
-  path: string,
-  query = '',
-  body?: object
-): { timestamp: string; nonce: string; signature: string } {
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const nonce = crypto.randomUUID();
-  const host = new URL(BASE_URL).host;
-  const requestBody = method.toUpperCase() === 'GET' ? '' : JSON.stringify(body ?? {});
-  const bodyHash = requestBody
-    ? crypto.createHash('sha256').update(requestBody).digest('hex')
-    : '';
-  const canonical = [
-    method.toUpperCase(),
-    host,
-    path,
-    query,
-    bodyHash,
-    timestamp,
-    nonce,
-  ].join('\n');
-  const signature = crypto.createHmac('sha256', API_SECRET).update(canonical).digest('hex');
-  return { timestamp, nonce, signature };
-}
-
-async function coinutRequest<T>(
-  method: string,
-  path: string,
-  { query = '', body }: { query?: string; body?: object } = {}
-): Promise<T> {
-  const { timestamp, nonce, signature } = createSignature(method, path, query, body);
-
-  const config: AxiosRequestConfig = {
-    method,
-    url: `${BASE_URL}${path}${query ? '?' + query : ''}`,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
-      'X-Timestamp': timestamp,
-      'X-Nonce': nonce,
-      'X-Signature': signature,
-    },
-    data: body,
-  };
-
-  // Unwrap to the payload inside the `{status, data}` envelope, not the raw response body.
-  const response = await axios(config);
-  return response.data.data as T;
-}
-
-interface Customer {
-  id: string;
-}
-
-interface VirtualAccount {
-  id: string;
-  payId?: string;
-  bicSwift?: string; // BSB for AUD, SWIFT/BIC for other currencies
-  accountNumber?: string;
-  iban?: string;
-}
-
-interface CryptoAddress {
-  id: string;
-}
-
-interface OnrampFlow {
-  id: string;
-}
-
-export async function executeOnramp(
-  name: string,
-  email: string,
-  externalId: string,
-  walletAddress: string
-): Promise<{ customerId: string; payId?: string; flowId: string }> {
-  const customer = await coinutRequest<Customer>('POST', '/customer/create', {
-    body: { name, email, type: 'DEPOSITOR', isIndividual: true, externalId },
-  });
-
-  const createdVa = await coinutRequest<VirtualAccount>('POST', '/virtual-account/create', {
-    body: { customerId: customer.id, currency: 'AUD' },
-  });
-
-  // Create only returns `id` — fetch detail for payId / accountNumber / bicSwift / iban.
-  const va = await coinutRequest<VirtualAccount>('GET', '/virtual-account/detail', {
-    query: `id=${createdVa.id}`,
-  });
-
-  const cryptoAddress = await coinutRequest<CryptoAddress>('POST', '/crypto-address/add', {
-    body: {
-      customerId: customer.id,
-      currency: 'USDT',
-      address: walletAddress,
-      label: 'Customer Wallet',
-      network: 'TRX',
-    },
-  });
-
-  const flow = await coinutRequest<OnrampFlow>('POST', '/autoramp-flow/onramp', {
-    body: {
-      from: { customerId: customer.id, currency: 'AUD' },
-      to: cryptoAddress.id,
-    },
-  });
-
-  return {
-    customerId: customer.id,
-    payId: va.payId,
-    flowId: flow.id,
-  };
-}
-```
-
-```bash cURL
-# Step 1: Create Customer
-curl -X POST https://ramp.hexarails.ai/customer/create \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $API_KEY" \
-  -H "X-Timestamp: $(date +%s)" \
-  -H "X-Nonce: $(date +%s%3N)" \
-  -H "X-Signature: $SIGNATURE" \
-  -d '{
-    "name": "John Doe",
-    "email": "john@example.com",
-    "type": "DEPOSITOR",
-    "isIndividual": true,
-    "externalId": "user_12345"
-  }'
-
-# Step 3: Create Virtual Account
-curl -X POST https://ramp.hexarails.ai/virtual-account/create \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $API_KEY" \
-  -H "X-Timestamp: $(date +%s)" \
-  -H "X-Nonce: $(date +%s%3N)" \
-  -H "X-Signature: $SIGNATURE" \
-  -d '{
-    "customerId": "cust_abc123",
-    "currency": "AUD"
-  }'
-
-# Step 4: Add Crypto Address
-curl -X POST https://ramp.hexarails.ai/crypto-address/add \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $API_KEY" \
-  -H "X-Timestamp: $(date +%s)" \
-  -H "X-Nonce: $(date +%s%3N)" \
-  -H "X-Signature: $SIGNATURE" \
-  -d '{
-    "customerId": "cust_abc123",
-    "currency": "USDT",
-    "address": "TXXXX...",
-    "label": "Customer Wallet",
-    "network": "TRX"
-  }'
-
-# Step 5: Create Onramp Flow
+```bash
 curl -X POST https://ramp.hexarails.ai/autoramp-flow/onramp \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_KEY" \
   -H "X-Timestamp: $(date +%s)" \
-  -H "X-Nonce: $(date +%s%3N)" \
+  -H "X-Nonce: $NONCE" \
   -H "X-Signature: $SIGNATURE" \
   -d '{
     "from": {
-      "customerId": "cust_abc123",
+      "customerId": "6ac34182-aa2e-4290-ab1b-302a09f451d1",
       "currency": "AUD"
     },
     "to": "crypto_addr_id_xyz789"
   }'
 ```
 
-</CodeGroup>
+### Response
 
-<Tip>
-  Use the `externalId` field when creating customers to link Coinut records with your internal user system. This makes reconciliation and webhook handling much simpler.
-</Tip>
-
-## Environment
-
-| Environment | Base URL |
-| --- | --- |
-| Production | `https://ramp.hexarails.ai` |
-| Sandbox | `https://ramp-sandbox.hexarails.ai` |
-
-Use small amounts for testing (e.g., 10-50 AUD equivalent). Set up webhook testing with a local tunnel:
-
-```bash
-# Expose local webhook handler to the internet
-npx ngrok http 3000
-
-# Use the HTTPS URL as your webhook endpoint in the Partner Dashboard
-# Example: https://abc123.ngrok.io/webhooks/coinut
+```json
+{
+  "status": "SUCCESS",
+  "data": {
+    "id": "uuid-12345"
+  }
+}
 ```
 
-## Go-Live Checklist
+The response only contains the new flow's `id`. Fetch [`GET /autoramp-flow/detail`](api/autoramp-detail) to retrieve the created virtual account's banking details (`payId`, `accountNumber`, `iban`, `bicSwift`) under `fromVirtualAccount` — display these to the customer.
 
-- KYC flow tested end-to-end
-- All webhook events handled (`CUSTOMER_APPROVED`, `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_SETTLED`)
-- Error handling implemented for API failures and timeouts
-- Retry logic with exponential backoff for idempotent requests
-- Monitoring dashboards set up for deposit and trade volumes
-- IP whitelist configured in Partner Dashboard
-- Webhook signature verification implemented
-- Sandbox testing completed with multiple currencies
+### Error response
+
+```json
+{
+  "status": "INVALID_PARAMETERS",
+  "message": "invalid parameters"
+}
+```
+
+## Monitor via Webhooks
+
+Subscribe to `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_CREATED`, and `TRADE_SETTLED` rather than polling. See [Webhooks](webhooks), [Payload Examples](webhooks-payload-examples), and [Trades](trades) for on-chain verification once `TRADE_SETTLED` fires.
+
+## Related Guides
+
+- [Customer Lifecycle](customer-lifecycle)
+- [Crypto Addresses](crypto-addresses)
+- [Autoramp Flows](autoramp-flows)
+- [Deposits](deposits) · [Trades](trades)

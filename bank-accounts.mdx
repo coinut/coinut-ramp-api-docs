@@ -3,4 +3,52 @@ title: "Bank Accounts"
 description: "Registering customer bank accounts and per-currency field requirements."
 ---
 
-Content coming soon.
+A bank account is the fiat-side destination for an offramp payout — where converted crypto is deposited as fiat.
+
+## Adding a Bank Account
+
+Call [`POST /bank-account/add`](api/bank-account-add):
+
+```json
+{
+  "customerId": "6ac34182-aa2e-4290-ab1b-302a09f451d1",
+  "currency": "EUR",
+  "bankName": "Deutsche Bank",
+  "accountNo": "1234567890",
+  "iban": "DE89370400440532013000",
+  "swift": "DEUTDEFF",
+  "beneficiaryName": "John Doe"
+}
+```
+
+The API only strictly requires `customerId`, `currency`, and `bankName` — it does not enforce currency-specific combinations of the remaining fields at the schema level. Still, supply the fields your customer's currency needs below; payouts can be delayed or fail at the banking layer if the receiving bank needs a field the schema didn't require you to send.
+
+`currency` accepts only `GBP`, `EUR`, `AUD`, `SGD`, or `USD` — any other value, including `CAD`, is rejected.
+
+| Currency | Recommended Fields | Optional Fields | Typical Settlement |
+| --- | --- | --- | --- |
+| USD | `bankName`, `accountNo`, `aba` and/or `swift` | `beneficiaryName`, `bankAddress` | 1-2 business days |
+| EUR | `bankName`, `iban`, `swift` | `beneficiaryName`, `bankAddress`, `accountNo` | 1 business day |
+| GBP | `bankName`, `iban`, `swift` | `beneficiaryName`, `bankAddress`, `accountNo` | 1 business day |
+| AUD | `bankName`, `accountNo` | `beneficiaryName` | 1 business day |
+| SGD | `bankName`, `accountNo`, `swift` | `beneficiaryName`, `bankAddress` | 1 business day |
+
+<Note>
+  There is no `sortCode`, `bsb`, or `accountName` field on this endpoint — the field for the account holder's name is `beneficiaryName`. If your AUD payout needs a BSB captured explicitly, check with Coinut support on current formatting expectations before going live.
+</Note>
+
+### Additional fields
+
+For intermediary-bank routing or region-specific rails, the endpoint also accepts: `bankCountry`, `interBankName`, `interBankBic`, `interBankAccountNo`, `institutionNumber`, `transit`, `label`, and an optional `statementFile` upload (multipart).
+
+Store the returned `id` — it's the value you pass as `to` when creating an offramp flow (see [Autoramp Flows](autoramp-flows)).
+
+<Note>
+  Banking cutoff times vary by currency and institution. EUR SEPA transfers typically process until 3:00 PM CET; USD ACH transfers have a 5:00 PM ET cutoff. Communicate these timelines to your customers.
+</Note>
+
+## Related
+
+- [`GET /bank-account/list`](api/bank-account-list), [`GET /bank-account/detail`](api/bank-account-detail)
+- [Autoramp Flows](autoramp-flows) — using a bank account as an offramp destination
+- [Crypto Addresses](crypto-addresses) — the crypto-side equivalent
