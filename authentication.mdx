@@ -291,42 +291,6 @@ curl https://ramp-sandbox.hexarails.ai/balance \
 | `401` | Missing header, unrecognized API key, expired/incorrectly-formatted timestamp, or signature mismatch | Rebuild the canonical string exactly as shown above and re-check each header value |
 | `422` | Request was authenticated but the body/query failed validation, or a downstream operation failed | Compare the request against the endpoint's schema in the API Reference |
 
-## IP Whitelisting
-
-Restrict API access to your server IP addresses for additional security.
-
-### Get Current IP Whitelist
-
-```bash
-curl https://ramp-sandbox.hexarails.ai/ip-white-list \
-  -H "X-API-Key: $API_KEY" \
-  -H "X-Timestamp: $TIMESTAMP" \
-  -H "X-Nonce: $NONCE" \
-  -H "X-Signature: $SIGNATURE"
-```
-
-### Update IP Whitelist
-
-```bash
-curl -X POST https://ramp-sandbox.hexarails.ai/ip-white-list \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $API_KEY" \
-  -H "X-Timestamp: $TIMESTAMP" \
-  -H "X-Nonce: $NONCE" \
-  -H "X-Signature: $SIGNATURE" \
-  -d '{
-    "ipWhiteList": ["115.236.134.118", "47.89.58.120"]
-  }'
-```
-
-| Field | Required | Description |
-| --- | --- | --- |
-| `ipWhiteList` | Yes | Array of IP addresses, **maximum 6 entries**. Empty array `[]` means **no restriction**. |
-
-<Note>
-  Submitting more than 6 IP addresses is rejected with a `422` error (`Only 6 IP addresses are allowed`). If you operate more than 6 egress IPs, front them with a NAT gateway or reverse proxy and whitelist that single address instead.
-</Note>
-
 ## Best Practices
 
 ### Use Unique Nonces
