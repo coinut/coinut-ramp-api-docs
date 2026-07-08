@@ -164,22 +164,7 @@
           }
         ]
       }
-    ],
-
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Dashboard",
-          "href": "https://coinut.com",
-          "icon": "layout-dashboard"
-        },
-        {
-          "anchor": "Support",
-          "href": "mailto:support@coinut.com",
-          "icon": "envelope"
-        }
-      ]
-    }
+    ]
   },
 
   "background": {
