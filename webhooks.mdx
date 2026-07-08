@@ -95,13 +95,15 @@ These dot-notation events are still delivered in production for backward compati
 | Method | `POST` |
 | Protocol | HTTPS strongly recommended. Note: the callback-URL field is not currently restricted to `https://` by validation, so a plain HTTP URL will be accepted — use HTTPS regardless, since payloads include customer and transaction data. |
 | Timeout | Not enforced by the sender today — the delivery attempt will wait indefinitely for your response. Respond promptly anyway; don't rely on this. |
-| Retries | Up to 5 total attempts per event occurrence |
-| Backoff | 10 minutes → 1 hour → 1 day → 1 week between attempts |
+| Scheduler | Callback delivery (including retries) is processed by a scheduler that runs every 1 minute — expect up to ~1 minute of added latency on top of any scheduled retry delay. |
+| Retries | Up to 4 retries after the initial attempt (5 total delivery attempts per event occurrence) |
+| Retry triggers | A retry is queued when either the callback payload fails to build, or the HTTP delivery itself fails |
+| Backoff | 10 minutes → 1 hour → 1 day → 1 week after each failed attempt |
 | Success criteria | Any `2xx` response |
 | Deduplication | Keyed on partner + event type + source record ID (surfaced to you as `payload.id`) |
 
 <Note>
-  Deduplication is scoped per partner, so it only suppresses repeat deliveries of the *same* underlying occurrence to *you*. If all 5 attempts for an occurrence are exhausted without a `2xx`, and the same underlying event fires again upstream (e.g. a corrected retry), a new delivery cycle starts for it — so `event` + `payload.id` alone isn't a lifetime guarantee against redelivery beyond the 5-attempt window. Keep your handler idempotent regardless.
+  Deduplication is scoped per partner, so it only suppresses repeat deliveries of the *same* underlying occurrence to *you*. If all 5 attempts for an occurrence are exhausted without a `2xx`, the event **remains failed** — no further automatic retries are performed. If the same underlying event fires again upstream (e.g. a corrected retry), a new delivery cycle starts for it — so `event` + `payload.id` alone isn't a lifetime guarantee against redelivery beyond the 5-attempt window. Keep your handler idempotent regardless.
 </Note>
 
 ## Best Practices
