@@ -39,7 +39,7 @@ The API only strictly requires `customerId`, `currency`, and `bankName` — it d
 
 ### Additional fields
 
-For intermediary-bank routing or region-specific rails, the endpoint also accepts: `bankCountry`, `interBankName`, `interBankBic`, `interBankAccountNo`, `institutionNumber`, `transit`, `label`, and an optional `statementFile` upload (multipart).
+For intermediary-bank routing or region-specific rails, the endpoint also accepts: `bankCountry`, `beneficiaryAddress`, `interBankName`, `interBankBic`, `interBankAccountNo`, `institutionNumber`, `transit`, `label`, and an optional `statementFile` upload (multipart).
 
 Store the returned `id` — it's the value you pass as `to` when creating an offramp flow (see [Autoramp Flows](autoramp-flows)).
 

@@ -141,7 +141,9 @@ AUD virtual accounts support a whitelist that restricts which bank accounts can 
 
 ### Whitelist Format
 
-```json
+Creating and updating a whitelist entry take slightly different `sourceAccount` shapes:
+
+```json Create
 {
   "id": "va_123",
   "sourceAccount": {
@@ -152,14 +154,27 @@ AUD virtual accounts support a whitelist that restricts which bank accounts can 
 }
 ```
 
+```json Update
+{
+  "id": "va_123",
+  "sourceAccount": {
+    "id": 1,
+    "bsbNumber": "062000",
+    "accountNumber": "12345678",
+    "accountName": "Alice Smith",
+    "accountStatus": "active"
+  }
+}
+```
+
 <Warning>
-  The virtual account identifier field is `id`, not `vaId` — submitting `vaId` will fail validation since `id` is required.
+  The virtual account identifier field is `id`, not `vaId` — submitting `vaId` will fail validation since `id` is required. On create, only `bsbNumber` and `accountNumber` are required (`accountName` is optional). On **update**, `bsbNumber`, `accountNumber`, `accountName`, **and `accountStatus` are all required** — omitting `accountStatus` will fail validation.
 </Warning>
 
 When a whitelist is active, deposits from non-whitelisted accounts may be rejected or held for manual review.
 
 <Note>
-  [`POST /virtual-account/create-aud-whitelist`](api/virtual-account-create-whitelist) <Icon icon="link" size={14} /> and [`.../update-aud-whitelist`](api/virtual-account-update-whitelist) <Icon icon="link" size={14} /> return their `data` as an **array** of whitelist entries, matching [`GET /virtual-account/get-aud-whitelist`](api/virtual-account-get-whitelist) <Icon icon="link" size={14} /> — not a single object. `sourceAccount.id` is technically optional on update, but omitting it sends `0` as the entry identifier, so always include it once you have it.
+  [`POST /virtual-account/create-aud-whitelist`](api/virtual-account-create-whitelist) <Icon icon="link" size={14} /> and [`.../update-aud-whitelist`](api/virtual-account-update-whitelist) <Icon icon="link" size={14} /> return their `data` as a **single** whitelist entry object — only [`GET /virtual-account/get-aud-whitelist`](api/virtual-account-get-whitelist) <Icon icon="link" size={14} /> returns an **array** of entries. `sourceAccount.id` is optional on update, but omitting it sends `0` as the entry identifier, so always include it once you have it.
 </Note>
 
 ## Best Practices

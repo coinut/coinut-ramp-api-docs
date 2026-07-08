@@ -37,7 +37,7 @@ const API_SECRET = 'YOUR_API_SECRET';
 
 async function signAndRequest() {
   const method = 'POST';
-  const host = 'ramp.hexarails.ai'; // or ramp-sandbox.hexarails.ai
+  const host = 'ramp-sandbox.hexarails.ai';
   const path = '/payment/estimate';
   const query = ''; // e.g. 'currency=USDT&network=TRX'
 
@@ -128,7 +128,7 @@ public class CoinutSignatureExample {
         String apiSecret = "YOUR_API_SECRET";
 
         String method = "POST";
-        String host = "ramp.hexarails.ai";
+        String host = "ramp-sandbox.hexarails.ai";
         String path = "/payment/estimate";
         String query = "";
 
@@ -197,7 +197,7 @@ def hmac_sha256_hex(secret: str, data: str) -> str:
 
 def main():
     method = "POST"
-    host = "ramp.hexarails.ai"  # or ramp-sandbox.hexarails.ai
+    host = "ramp-sandbox.hexarails.ai"
     path = "/payment/estimate"
     query = ""  # e.g. "currency=USDT&network=TRX"
 
