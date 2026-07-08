@@ -9,6 +9,22 @@ description: "Base URLs, authentication, conventions, and patterns for the Coinu
 | --- | --- |
 | Sandbox | `https://ramp-sandbox.hexarails.ai` |
 
+## API Playground vs. Your Integration
+
+<Warning>
+  The interactive **API Playground** on this site (the "Try it" panel on each endpoint page) behaves differently from calling the API from your own service — don't treat a successful Playground call as proof that your own signing implementation is correct.
+</Warning>
+
+The Playground is useful for a first check that your **API key and secret are valid** and for exploring request/response shapes, but the signing step is not representative of a real integration:
+
+| | API Playground | Your Service (Sandbox / Production) |
+| --- | --- | --- |
+| Who computes the HMAC-SHA256 signature | The Playground's own backend, using the API key/secret you paste into the docs UI | Your service, using the canonical-string algorithm described below |
+| What it proves | Your API key/secret pair is valid and active | Your actual signing implementation is correct end-to-end |
+| Where credentials are entered | Directly into the browser-based Playground form | Held server-side in your own environment |
+
+Once you've confirmed your API key and secret work in the Playground, move on to implementing the signature yourself — using the canonical string and HMAC-SHA256 steps below — and test that implementation directly against the sandbox base URL (`https://ramp-sandbox.hexarails.ai`). That's the only way to validate the request-signing code you'll actually run in production.
+
 ## Authentication
 
 Every request must be authenticated using **HMAC-SHA256** request signing. You receive an API key and secret during partner onboarding.

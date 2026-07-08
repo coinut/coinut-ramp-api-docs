@@ -24,7 +24,7 @@ Partner App -> Coinut API -> Sumsub (KYC) -> Autoramp -> Trade -> Crypto Transfe
 
 <Steps>
   <Step title="Create Customer">
-    Call `POST /customer/create` with name, email, `type="DEPOSITOR"`, and `isIndividual=true`.
+    Call [`POST /customer/create`](api/customer-create) with name, email, `type="DEPOSITOR"`, and `isIndividual=true`.
 
     ```json
     {
@@ -39,12 +39,12 @@ Partner App -> Coinut API -> Sumsub (KYC) -> Autoramp -> Trade -> Crypto Transfe
     Store the returned `id` — that's the customer identifier for every subsequent call. The customer receives a KYC link via email to complete identity verification.
   </Step>
   <Step title="Wait for KYC Approval">
-    Listen for the `CUSTOMER_APPROVED` webhook event. You can also poll `GET /customer/detail` to check status.
+    Listen for the `CUSTOMER_APPROVED` webhook event. You can also poll [`GET /customer/detail`](api/customer-detail) to check status.
 
     Customer status transitions: `PENDING` → `CONFIRMED` | `REJECTED` (a customer can also end up `DELETED`).
   </Step>
   <Step title="Add Crypto Address">
-    Call `POST /crypto-address/add` with:
+    Call [`POST /crypto-address/add`](api/crypto-address-add) with:
 
     - `customerId`
     - `currency` — `"USDT"` or `"USDC"`
@@ -55,7 +55,7 @@ Partner App -> Coinut API -> Sumsub (KYC) -> Autoramp -> Trade -> Crypto Transfe
     Store the returned `id`. You'll need it for the autoramp flow.
   </Step>
   <Step title="Create Autoramp Flow">
-    Call `POST /autoramp-flow/onramp` with the fiat source and crypto destination:
+    Call [`POST /autoramp-flow/onramp`](api/autoramp-onramp) with the fiat source and crypto destination:
 
     ```json
     {
@@ -70,7 +70,7 @@ Partner App -> Coinut API -> Sumsub (KYC) -> Autoramp -> Trade -> Crypto Transfe
     This links the virtual account deposits to automatic crypto conversion.
   </Step>
   <Step title="Display VA to Customer">
-    Show the virtual account details from `GET /virtual-account/detail` in your UI. There's a single `bicSwift` field for every currency — it carries the BSB number for AUD and the SWIFT/BIC code for everything else. There's no separate "sort code" field.
+    Show the virtual account details from [`GET /virtual-account/detail`](api/virtual-account-detail) in your UI. There's a single `bicSwift` field for every currency — it carries the BSB number for AUD and the SWIFT/BIC code for everything else. There's no separate "sort code" field.
 
     - **AUD**: Display `payId` (e.g., `john.doe@example.com`), `bicSwift` (BSB), and `accountNumber`
     - **EUR / GBP / SGD / USD**: Display `iban` and `bicSwift` (SWIFT/BIC)
@@ -84,7 +84,7 @@ Partner App -> Coinut API -> Sumsub (KYC) -> Autoramp -> Trade -> Crypto Transfe
     - `DEPOSIT_RECEIVED` — funds detected
     - `DEPOSIT_APPROVED` — funds cleared
 
-    Or poll `GET /deposit/list` with the customer ID.
+    Or poll [`GET /deposit/list`](api/deposit-list) with the customer ID.
   </Step>
   <Step title="Track Trade">
     After deposit approval, listen for:
@@ -92,13 +92,7 @@ Partner App -> Coinut API -> Sumsub (KYC) -> Autoramp -> Trade -> Crypto Transfe
     - `TRADE_CREATED` — trade initiated
     - `TRADE_SETTLED` — trade complete, crypto sent
 
-    Or poll `GET /trade/list`.
-  </Step>
-  <Step title="Confirm Settlement">
-    The `TRADE_SETTLED` webhook includes `txHash`. Use it to verify the crypto transaction on-chain:
-
-    - ERC-20: [https://etherscan.io/tx/{txHash}](https://etherscan.io/tx/{txHash})
-    - TRC-20: [https://tronscan.org/#/transaction/{txHash}](https://tronscan.org/#/transaction/{txHash})
+    Or poll [`GET /trade/list`](api/trade-list).
   </Step>
   <Step title="Confirm Settlement">
     There's no top-level `txHash` field. Once the crypto has been broadcast, the `TRADE_SETTLED` payload includes a nested `withdrawal.txId` — use that to verify the transaction on-chain:

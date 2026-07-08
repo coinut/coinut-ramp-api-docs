@@ -75,6 +75,7 @@
             "group": "Common",
             "pages": [
               "api/common-balance",
+              "api/common-deposit-address",
               "api/common-basic-info",
               "api/common-health",
               "api/common-callback-url-get",
@@ -89,6 +90,7 @@
             "group": "Customers",
             "pages": [
               "api/customer-create",
+              "api/customer-create-with-files",
               "api/customer-detail",
               "api/customer-list"
             ]
@@ -136,6 +138,7 @@
               "api/autoramp-offramp",
               "api/autoramp-list",
               "api/autoramp-detail",
+              "api/autoramp-trade-preview",
               "api/autoramp-delete"
             ]
           },
@@ -144,7 +147,8 @@
             "pages": [
               "api/deposit-list",
               "api/deposit-detail",
-              "api/deposit-submit-attachment"
+              "api/deposit-submit-attachment",
+              "api/deposit-mock"
             ]
           },
           {

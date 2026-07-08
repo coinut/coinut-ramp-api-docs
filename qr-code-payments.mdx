@@ -376,7 +376,7 @@ export class QRCodeService {
   Coinut's backend only issues deposit addresses for `USDT`, on the `ETH` or `TRX` network (`MATIC` is accepted by the deposit-address schema but isn't fully supported end-to-end yet — don't offer it to customers). The URI formats below (`ethereum:`, `tron:`) are common wallet-app conventions, not something Coinut generates, validates, or is tied to — test against the actual wallet apps you expect customers to use before relying on them.
 </Note>
 
-The `address` you QR-encode must come from a Coinut deposit address record (`POST /deposit-address/create`, then `GET /deposit-address/detail`) — **not** an arbitrary address you generate yourself. A newly created deposit address starts in `PENDING` status with `address: null`; wait for the `DEPOSIT_ADDRESS_APPROVED` webhook (or poll `GET /deposit-address/detail` until `address` is populated) before generating a QR code — there is nothing to encode immediately after creation.
+The `address` you QR-encode must come from a Coinut deposit address record ([`POST /deposit-address/create`](api/deposit-address-create), then [`GET /deposit-address/detail`](api/deposit-address-detail)) — **not** an arbitrary address you generate yourself. A newly created deposit address starts in `PENDING` status with `address: null`; wait for the `DEPOSIT_ADDRESS_APPROVED` webhook (or poll [`GET /deposit-address/detail`](api/deposit-address-detail) until `address` is populated) before generating a QR code — there is nothing to encode immediately after creation.
 
 For crypto deposits, use the standard URI format:
 
@@ -384,25 +384,17 @@ For crypto deposits, use the standard URI format:
 {currency}:{address}?network={network}
 ```
 
-For crypto deposits, use the standard URI format:
+**Example for ERC-20 USDT**:
 
 ```text
-{currency}:{address}?network={network}
+ethereum:0x742d35Cc6634C0532925a3b8D4C9db96590f6C7E?network=ETH
 ```
 
-**Example for ERC-20 USDTExample for ERC-20 USDT**:
+**Example for TRC-20 USDT**:
 
 ```text
-ethereum:0x742d35Cc6634C0532925a3b8D4C9db96590f6C7E?network=ETHethereum:0x742d35Cc6634C0532925a3b8D4C9db96590f6C7E?network=ETH
+tron:TXYZ1234567890...?network=TRX
 ```
-
-**Example for TTRC-20 USDT**:
-
-```text
-tron:TXYZ1234567890...?network=TRXtron:TXYZ1234567890...?network=TRX
-```
-
-### Simple Crypto QR Generator
 
 ### Simple Crypto QR Generator
 
@@ -424,34 +416,17 @@ const qr = await generateCryptoQR(
   '0x742d35Cc6634C0532925a3b8D4C9db96590f6C7E',
   'ETH',
   'ethereum'
-);const QRCode = require('qrcode');
-
-async function generateCryptoQR(address, network, currency = 'ethereum') {
-  const uri = `${currency}:${address}?network=${network}`;
-  return QRCode.toDataURL(uri, {
-    width: 256,
-    margin: 2,
-    errorCorrectionLevel: 'M',
-  });
-}
-
-// Usage — `address` must come from GET /deposit-address/detail once its
-// status has left PENDING, not a value you construct yourself.
-const qr = await generateCryptoQR(
-  '0x742d35Cc6634C0532925a3b8D4C9db96590f6C7E',
-  'ETH',
-  'ethereum'
 );
 ```
 
-## Integration FlowIntegration Flow
+## Integration Flow
 
 <Steps>
   <Step title="Create VA">
-    Call `POST /virtual-account/create` with `customerId` and `currency`.
+    Call [`POST /virtual-account/create`](api/virtual-account-create) with `customerId` and `currency`.
   </Step>
   <Step title="Fetch the PayID">
-    The create response only returns the new VA's `id` — it does not include `payId`. Immediately call `GET /virtual-account/detail?id=...` and read `payId` from that response instead.
+    The create response only returns the new VA's `id` — it does not include `payId`. Immediately call [`GET /virtual-account/detail`](api/virtual-account-detail)`?id=...` and read `payId` from that response instead.
   </Step>
   <Step title="Generate QR">
     Use one of the code examples above to generate a QR code from `payid:{payId}`.
@@ -463,47 +438,11 @@ const qr = await generateCryptoQR(
     Customer opens their banking app, scans the QR code, enters the amount, and confirms.
   </Step>
   <Step title="Payment Arrives">
-    Your webhook endpoint receives a `DEPOSIT_RECEIVED` event once the transfer is detected. On its own, this only records the deposit against the customer — it does **not** automatically convert to crypto or trigger any downstream processing unless this VA is also linked to an onramp flow (`POST /autoramp-flow/onramp`, see the [Onramp Integration](onramp-integration) guide). If you only need to receive and reconcile fiat, `DEPOSIT_RECEIVED` (and `DEPOSIT_APPROVED` once cleared) is all you need to act on.
-  </Step>
-  <Step title="Create VA">
-    Call `POST /virtual-account/create` with `customerId` and `currency`.
-  </Step>
-  <Step title="Fetch the PayID">
-    The create response only returns the new VA's `id` — it does not include `payId`. Immediately call `GET /virtual-account/detail?id=...` and read `payId` from that response instead.
-  </Step>
-  <Step title="Generate QR">
-    Use one of the code examples above to generate a QR code from `payid:{payId}`.
-  </Step>
-  <Step title="Display in UI">
-    Embed the QR code in your payment page alongside the text PayID and `bicSwift` (BSB) \+ Account Number — there's a single `bicSwift` field for this, not a separate `bsb` field.
-  </Step>
-  <Step title="Customer Scans">
-    Customer opens their banking app, scans the QR code, enters the amount, and confirms.
-  </Step>
-  <Step title="Payment Arrives">
-    Your webhook endpoint receives a `DEPOSIT_RECEIVED` event once the transfer is detected. On its own, this only records the deposit against the customer — it does **not** automatically convert to crypto or trigger any downstream processing unless this VA is also linked to an onramp flow (`POST /autoramp-flow/onramp`, see the [Onramp Integration](onramp-integration) guide). If you only need to receive and reconcile fiat, `DEPOSIT_RECEIVED` (and `DEPOSIT_APPROVED` once cleared) is all you need to act on.
+    Your webhook endpoint receives a `DEPOSIT_RECEIVED` event once the transfer is detected. On its own, this only records the deposit against the customer — it does **not** automatically convert to crypto or trigger any downstream processing unless this VA is also linked to an onramp flow ([`POST /autoramp-flow/onramp`](api/autoramp-onramp), see the [Onramp Integration](onramp-integration) guide). If you only need to receive and reconcile fiat, `DEPOSIT_RECEIVED` (and `DEPOSIT_APPROVED` once cleared) is all you need to act on.
   </Step>
 </Steps>
 
-## TestingTesting
-
-Verify your QR codes before deploying:
-
-1. **Online scanner**: Use an online QR decoder to verify the content matches `payid:{address}`
-2. **Banking app test**: Scan with a real Australian banking app (CommBank, ANZ, etc.)
-3. **Edge cases**: Test with different phone cameras, lighting conditions, and screen sizes
-
-### Quick Test Script
-
-```bash
-# Install zbar-tools (Linux/Mac)
-# brew install zbar (Mac)
-# apt-get install zbar-tools (Linux)
-
-# Decode a generated QR image
-zbarimg --raw payid-qr.png
-# Expected output: payid:john.doe@example.com
-```
+## Testing
 
 Verify your QR codes before deploying:
 

@@ -14,9 +14,9 @@ Coinut Partner Ramp lets you offer cryptocurrency services to your customers wit
 | Mode | Best For | How It Works |
 | --- | --- | --- |
 | **Autoramp** | Individual customers, consumer apps | Automated KYC, step-by-step flow, customer manages their own verification |
-| **Omnibus** | Enterprise, platforms, marketplaces | Direct API calls, bulk operations, you manage customer aggregation |
+| **Direct API** | Enterprise, platforms, marketplaces | Direct API calls, bulk operations, you manage customer aggregation |
 
-Choose Autoramp for faster time-to-market with individual users. Choose Omnibus if you operate a platform with pooled liquidity or need full control over the customer experience.
+Choose Autoramp for faster time-to-market with individual users. Choose Direct API if you operate a platform with pooled liquidity or need full control over the customer experience.
 
 ## Architecture
 
@@ -68,16 +68,16 @@ We perform KYC/AML screening, transaction monitoring, and regulatory reporting s
 
 <Steps>
   <Step title="Create the customer">
-    Create a customer with `POST /customer/create`. The response includes a Coinut customer ID and, when applicable, a Sumsub KYC link.
+    Create a customer with [`POST /customer/create`](api/customer-create). The response includes a Coinut customer ID and, when applicable, a Sumsub KYC link.
   </Step>
   <Step title="Complete KYC">
-    Wait for approval through the Sumsub flow or your shared due diligence process. Use `GET /customer/detail` or the `CUSTOMER_APPROVED` webhook to confirm status.
+    Wait for approval through the Sumsub flow or your shared due diligence process. Use [`GET /customer/detail`](api/customer-detail) or the `CUSTOMER_APPROVED` webhook to confirm status.
   </Step>
   <Step title="Provision rails">
     Create virtual accounts, bank accounts, crypto addresses, or deposit addresses depending on the product flow.
   </Step>
   <Step title="Create the ramp flow">
-    Use Autoramp endpoints for managed onramp/offramp orchestration, or call Omnibus APIs directly for partner-controlled flows.
+    Use Autoramp endpoints for managed onramp/offramp orchestration, or call the underlying APIs directly for partner-controlled flows.
   </Step>
   <Step title="Reconcile with webhooks">
     Subscribe to customer, VA, deposit, trade, and payment events. Store Coinut IDs and your own `externalId` for clean reconciliation.

@@ -19,7 +19,7 @@ All webhooks:
 
 <Steps>
   <Step title="Register callback URL">
-    Send `POST /callback-url` with your HTTPS endpoint.
+    Send [`POST /callback-url`](api/common-callback-url-update) with your HTTPS endpoint.
 
     ```json
     {
@@ -28,7 +28,7 @@ All webhooks:
     ```
   </Step>
   <Step title="Subscribe to events">
-    Send `POST /subscribed-events` with the event types you want to receive.
+    Send [`POST /subscribed-events`](api/common-subscribed-events-update) with the event types you want to receive.
 
     ```json
     {
@@ -70,7 +70,7 @@ All webhooks:
 | `TRADE_SETTLED` | Trade completed | `TradeDetailDataDto` |
 | `PAYMENT_SETTLED` | Payment completed | `GetPaymentDetailDataDto` |
 
-Each event is also documented as a formal `webhooks` entry in the [OpenAPI spec](/api-overview), with its exact request schema per event type.
+Each event type is also documented in the `WebhookEvent` schema in the [OpenAPI spec](/api-overview) (`components.schemas.WebhookEvent`), which lists every valid `event` enum value alongside the deprecated legacy names.
 
 ### Legacy events
 

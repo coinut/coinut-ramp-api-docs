@@ -10,10 +10,10 @@ Coinut Partner Ramp supports two integration paths and two customer-level dimens
 | Mode | Best For | How It Works |
 | --- | --- | --- |
 | **Autoramp** | Individual customers, consumer apps | Single `/autoramp-flow/onramp` or `/autoramp-flow/offramp` call combining VA/deposit-address creation, KYC gating, and settlement into one flow |
-| **Omnibus** (direct API) | Enterprise, platforms, marketplaces | You call Virtual Account, Bank Account, Crypto Address, and Deposit Address APIs directly and orchestrate the sequencing yourself |
+| **Direct API** | Enterprise, platforms, marketplaces | You call Virtual Account, Bank Account, Crypto Address, and Deposit Address APIs directly and orchestrate the sequencing yourself |
 
 <Note>
-  "Autoramp" maps directly to the `/autoramp-flow/*` endpoints in the OpenAPI contract (`create`, `onramp`, `offramp`, `detail`, `list`, `delete`). "Omnibus" is Coinut's narrative label (see [Introduction](/)) for the alternative of calling the underlying resource APIs — Virtual Account, Bank Account, Crypto Address, Deposit Address — directly rather than through the bundled flow; it is not a literal enum value in the current schema. Confirm the operational specifics of enterprise/pooled setups with Coinut before committing to an architecture.
+  "Autoramp" maps directly to the `/autoramp-flow/*` endpoints in the OpenAPI contract (`create`, `onramp`, `offramp`, `detail`, `list`, `delete`). "Direct API" is Coinut's narrative label (see [Introduction](/)) for the alternative of calling the underlying resource APIs — Virtual Account, Bank Account, Crypto Address, Deposit Address — directly rather than through the bundled flow; it is not a literal enum value in the current schema. Confirm the operational specifics of enterprise/pooled setups with Coinut before committing to an architecture.
 </Note>
 
 ## Autoramp: Bundled Flow
@@ -66,7 +66,7 @@ Every customer created via `POST /customer/create` carries two independent class
 
 ## Related
 
-- [Introduction](/) — Autoramp vs Omnibus at the product level
+- [Introduction](/) — Autoramp vs Direct API at the product level
 - [Onramp Integration](/onramp-integration)
 - [Offramp Integration](/offramp-integration)
 - [Currencies](/coverage/currencies)
