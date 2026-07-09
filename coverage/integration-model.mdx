@@ -61,36 +61,7 @@ Individual users are created with `isIndividual: true` and onboarded through Sum
 | Shared KYC token | Pass an existing `sumsubShareToken` and Coinut pulls the verification data through the Sumsub API instead of hosting a new flow. |
 
 See [Customer Lifecycle](/customers/customer-lifecycle) for the full onboarding and status model.
-
-## Customer Classification
-
-Whichever model you run, every customer created via `POST /customer/create` carries two independent fields that determine onboarding and behavior:
-
-| Field | Values | Notes |
-| --- | --- | --- |
-| `type` | `DEPOSITOR`, `PAYEE` | Enum on `CustomerTypeEnum`, defaults to `DEPOSITOR`. Every documented flow (onramp, offramp) uses `DEPOSITOR`; `PAYEE` exists in the schema but has no distinct documented behavior yet — confirm its intended use with Coinut before relying on it. |
-| `isIndividual` | `true`, `false` | Individual (KYC) vs corporate (KYB) customer, defaults to `true`. It sets the verification depth on the Sumsub side, not which APIs are available. |
-
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "type": "DEPOSITOR",
-  "isIndividual": true,
-  "externalId": "user_12345"
-}
-```
-
-## How You Drive the Flow
-
-Independent of which model you run, you choose how much of the sequencing Coinut handles:
-
-- **Autoramp** — `POST /autoramp-flow/onramp` and `POST /autoramp-flow/offramp` bundle the fiat/crypto entry point, KYC gating, and settlement leg into a single flow. Fastest path to live, best suited to individual users.
 - **Direct API orchestration** — call the underlying resource endpoints yourself (`/virtual-account/create`, `/bank-account/add`, `/crypto-address/add`, `/deposit-address/create`, `/payment/create`) and manage the sequencing, retries, and customer aggregation. Suited to platforms with pooled liquidity or bespoke payout logic.
-
-<Note>
-  "Autoramp" maps directly to the `/autoramp-flow/*` endpoints in the OpenAPI contract. "Direct API orchestration" is a narrative label for calling the underlying resource APIs one by one — it is not a literal enum value in the schema. Confirm the specifics of any pooled or enterprise setup with Coinut before committing to an architecture.
-</Note>
 
 ## Choosing a Model
 
