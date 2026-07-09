@@ -3,7 +3,7 @@ title: "Payload Example"
 description: "Full {event, payload} example for every webhook event type Coinut sends."
 ---
 
-Every webhook delivery uses the same `{event, payload}` envelope described in [Webhooks](webhooks). Examples below are grouped by domain, matching the `WebhookEvent` schema's `payload` mapping in the OpenAPI spec — each domain shares one payload shape across its events.
+Every webhook delivery uses the same `{event, payload}` envelope described in [Webhooks](/concepts/webhooks). Examples below are grouped by domain, matching the `WebhookEvent` schema's `payload` mapping in the OpenAPI spec — each domain shares one payload shape across its events.
 
 | Domain | Payload schema | Events |
 | --- | --- | --- |
@@ -63,7 +63,7 @@ Every webhook delivery uses the same `{event, payload}` envelope described in [W
 
 </CodeGroup>
 
-See [Customer Lifecycle](customer-lifecycle) for the full field reference.
+See [Customer Lifecycle](/customers/customer-lifecycle) for the full field reference.
 
 ## Virtual Account Domain
 
@@ -110,7 +110,7 @@ See [Customer Lifecycle](customer-lifecycle) for the full field reference.
   `VirtualAccountDetailDto.status` only has `PENDING` and `VERIFIED` values — there's no dedicated `REJECTED` state on the virtual account record itself. Rely on the `event` name (`VIRTUAL_ACCOUNT_REJECTED`) to distinguish rejection, not the `status` field.
 </Note>
 
-See [Virtual Accounts](virtual-accounts-guide) for the full field reference.
+See [Virtual Accounts](/virtual-accounts/virtual-accounts-guide) for the full field reference.
 
 ## Deposit Address Domain
 
@@ -146,7 +146,7 @@ See [Virtual Accounts](virtual-accounts-guide) for the full field reference.
 
 </CodeGroup>
 
-See [Crypto Addresses](crypto-addresses#deposit-addresses-offramp-entry) for the full field reference.
+See [Crypto Addresses](/addresses/crypto-addresses#deposit-addresses-offramp-entry) for the full field reference.
 
 ## Deposit Domain
 
@@ -236,7 +236,7 @@ See [Crypto Addresses](crypto-addresses#deposit-addresses-offramp-entry) for the
 
 </CodeGroup>
 
-See [Deposits](deposits) for the full field reference.
+See [Deposits](/transactions/deposits) for the full field reference.
 
 ## Trade Domain
 
@@ -289,7 +289,7 @@ See [Deposits](deposits) for the full field reference.
   `deposit` is only present when the trade's originating deposit used the current deposit flow — for deposits made under the legacy flow, a `legacyDeposit` object (`{id, customerName}`, numeric `id`) is sent instead. `withdrawal.txId` is only present once the outgoing crypto transaction has been broadcast; it may be absent on early deliveries of this event.
 </Note>
 
-See [Trades](trades) for the full field reference.
+See [Trades](/transactions/trades) for the full field reference.
 
 ## Payment Domain
 
@@ -324,4 +324,4 @@ See [Trades](trades) for the full field reference.
 
 </CodeGroup>
 
-See [Payments](payments) for the full field reference.
+See [Payments](/transactions/payments) for the full field reference.

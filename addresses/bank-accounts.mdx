@@ -7,7 +7,7 @@ A bank account is the fiat-side destination for an offramp payout — where conv
 
 ## Adding a Bank Account
 
-Call [`POST /bank-account/add`](api/bank-account-add) <Icon icon="link" size={14} />:
+Call [`POST /bank-account/add`](/api/bank-account-add) <Icon icon="link" size={14} />:
 
 ```json
 {
@@ -41,7 +41,7 @@ The API only strictly requires `customerId`, `currency`, and `bankName` — it d
 
 For intermediary-bank routing or region-specific rails, the endpoint also accepts: `bankCountry`, `beneficiaryAddress`, `interBankName`, `interBankBic`, `interBankAccountNo`, `institutionNumber`, `transit`, `label`, and an optional `statementFile` upload (multipart).
 
-Store the returned `id` — it's the value you pass as `to` when creating an offramp flow (see [Autoramp Flows](autoramp-flows)).
+Store the returned `id` — it's the value you pass as `to` when creating an offramp flow (see [Autoramp Flows](/transactions/autoramp-flows)).
 
 <Note>
   Banking cutoff times vary by currency and institution. EUR SEPA transfers typically process until 3:00 PM CET; USD ACH transfers have a 5:00 PM ET cutoff. Communicate these timelines to your customers.
@@ -49,6 +49,6 @@ Store the returned `id` — it's the value you pass as `to` when creating an off
 
 ## Related
 
-- [`GET /bank-account/list`](api/bank-account-list) <Icon icon="link" size={14} />, [`GET /bank-account/detail`](api/bank-account-detail) <Icon icon="link" size={14} />
-- [Autoramp Flows](autoramp-flows) — using a bank account as an offramp destination
-- [Crypto Addresses](crypto-addresses) — the crypto-side equivalent
+- [`GET /bank-account/list`](/api/bank-account-list) <Icon icon="link" size={14} />, [`GET /bank-account/detail`](/api/bank-account-detail) <Icon icon="link" size={14} />
+- [Autoramp Flows](/transactions/autoramp-flows) — using a bank account as an offramp destination
+- [Crypto Addresses](/addresses/crypto-addresses) — the crypto-side equivalent

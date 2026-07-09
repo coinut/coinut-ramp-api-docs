@@ -32,48 +32,48 @@
             "group": "Getting Started",
             "pages": [
               "index",
-              "quickstart",
-              "authentication",
-              "integration-journey"
+              "getting-started/quickstart",
+              "getting-started/authentication",
+              "getting-started/integration-journey"
             ]
           },
           {
             "group": "Customers & Compliance",
             "pages": [
-              "customer-lifecycle",
-              "access-control"
+              "customers/customer-lifecycle",
+              "customers/access-control"
             ]
           },
           {
             "group": "Addresses",
             "pages": [
-              "crypto-addresses",
-              "bank-accounts"
+              "addresses/crypto-addresses",
+              "addresses/bank-accounts"
             ]
           },
           {
             "group": "Virtual Accounts",
             "pages": [
-              "virtual-accounts-guide"
+              "virtual-accounts/virtual-accounts-guide"
             ]
           },
           {
             "group": "Autoramp & Transactions",
             "hidden": true,
             "pages": [
-              "autoramp-flows",
-              "deposits",
+              "transactions/autoramp-flows",
+              "transactions/deposits",
 
-              "trades",
-              "payments"
+              "transactions/trades",
+              "transactions/payments"
             ]
           },
           {
             "group": "Guides",
             "pages": [
-              "onramp-integration",
-              "offramp-integration",
-              "qr-code-payments"
+              "guides/onramp-integration",
+              "guides/offramp-integration",
+              "guides/qr-code-payments"
             ]
           },
           {
@@ -82,12 +82,12 @@
               {
                 "group": "Webhooks",
                 "pages": [
-                  "webhooks",
-                  "webhooks-payload-examples",
-                  "webhooks-signature-verification"
+                  "concepts/webhooks",
+                  "concepts/webhooks-payload-examples",
+                  "concepts/webhooks-signature-verification"
                 ]
               },
-              "errors"
+              "concepts/errors"
             ]
           },
           {

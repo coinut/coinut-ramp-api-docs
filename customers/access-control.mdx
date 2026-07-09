@@ -3,7 +3,7 @@ title: "IP Whitelisting & Access Control"
 description: "Restricting API access by IP and managing credentials."
 ---
 
-Access to the Partner Ramp API is controlled by two independent mechanisms: request signing (see [Authentication](authentication)) and an optional per-partner IP whitelist, described below.
+Access to the Partner Ramp API is controlled by two independent mechanisms: request signing (see [Authentication](/getting-started/authentication)) and an optional per-partner IP whitelist, described below.
 
 ## IP Whitelisting
 
@@ -11,7 +11,7 @@ An IP whitelist restricts which source IPs are allowed to call the API with your
 
 ### Get the current whitelist
 
-Call [`GET /ip-white-list`](api/common-ip-whitelist-get) <Icon icon="link" size={14} />:
+Call [`GET /ip-white-list`](/api/common-ip-whitelist-get) <Icon icon="link" size={14} />:
 
 ```json
 {
@@ -24,7 +24,7 @@ Call [`GET /ip-white-list`](api/common-ip-whitelist-get) <Icon icon="link" size=
 
 ### Update the whitelist
 
-Call [`POST /ip-white-list`](api/common-ip-whitelist-update) <Icon icon="link" size={14} /> with the full replacement list:
+Call [`POST /ip-white-list`](/api/common-ip-whitelist-update) <Icon icon="link" size={14} /> with the full replacement list:
 
 ```json
 {
@@ -60,9 +60,9 @@ Call [`POST /ip-white-list`](api/common-ip-whitelist-update) <Icon icon="link" s
 
 ## Request Signing
 
-IP whitelisting is a network-level restriction on top of, not a replacement for, request signing — every request still requires a valid `X-API-Key` / `X-Timestamp` / `X-Nonce` / `X-Signature` HMAC-SHA256 signature regardless of whitelist configuration. See [Authentication](authentication) for the full signing scheme.
+IP whitelisting is a network-level restriction on top of, not a replacement for, request signing — every request still requires a valid `X-API-Key` / `X-Timestamp` / `X-Nonce` / `X-Signature` HMAC-SHA256 signature regardless of whitelist configuration. See [Authentication](/getting-started/authentication) for the full signing scheme.
 
 ## Related
 
-- [Authentication](authentication) — HMAC-SHA256 request signing
-- [Webhooks](webhooks) — outgoing deliveries are signed with the same scheme, but are **not** subject to your IP whitelist (they originate from Coinut, not your infrastructure)
+- [Authentication](/getting-started/authentication) — HMAC-SHA256 request signing
+- [Webhooks](/concepts/webhooks) — outgoing deliveries are signed with the same scheme, but are **not** subject to your IP whitelist (they originate from Coinut, not your infrastructure)

@@ -38,19 +38,19 @@ Every step must complete before moving to the next.
 
 <Steps>
   <Step title="Customer is CONFIRMED">
-    The customer must have completed KYC. See [Customer Lifecycle](customer-lifecycle).
+    The customer must have completed KYC. See [Customer Lifecycle](/customers/customer-lifecycle).
   </Step>
   <Step title="Register the bank account">
-    Register the destination bank account via [Bank Accounts](bank-accounts). You need its `id` before creating the flow.
+    Register the destination bank account via [Bank Accounts](/addresses/bank-accounts). You need its `id` before creating the flow.
   </Step>
   <Step title="(Optional) Preview the rate">
-    Call [`GET /autoramp-flow/trade-preview`](api/autoramp-trade-preview) <Icon icon="link" size={14} /> with `fromCurrency`, `toCurrency`, and `amount` for an indicative rate. This is a live estimate, not a locked quote — the flow always executes at the rate current when the deposit clears.
+    Call [`GET /autoramp-flow/trade-preview`](/api/autoramp-trade-preview) <Icon icon="link" size={14} /> with `fromCurrency`, `toCurrency`, and `amount` for an indicative rate. This is a live estimate, not a locked quote — the flow always executes at the rate current when the deposit clears.
   </Step>
 </Steps>
 
 ## Implementation
 
-Create the offramp flow with [`POST /autoramp-flow/offramp`](api/autoramp-offramp) <Icon icon="link" size={14} />. The deposit address is created (or reused, for an existing customer/currency/network combination) automatically from `from`.
+Create the offramp flow with [`POST /autoramp-flow/offramp`](/api/autoramp-offramp) <Icon icon="link" size={14} />. The deposit address is created (or reused, for an existing customer/currency/network combination) automatically from `from`.
 
 ### Request fields
 
@@ -59,7 +59,7 @@ Create the offramp flow with [`POST /autoramp-flow/offramp`](api/autoramp-offram
 | `from.customerId` | Yes | The customer's `id` |
 | `from.currency` | Yes | Crypto currency for the new deposit address: `USDT` or `USDC` |
 | `from.network` | Yes | `ETH` or `TRX` (`MATIC` accepted by the schema but not fully supported end-to-end yet) |
-| `to` | Yes | An existing [bank account](bank-accounts) `id` for this customer |
+| `to` | Yes | An existing [bank account](/addresses/bank-accounts) `id` for this customer |
 
 ### Request
 
@@ -91,10 +91,10 @@ curl -X POST https://ramp-sandbox.hexarails.ai/autoramp-flow/offramp \
 }
 ```
 
-The response only contains the new flow's `id` — not the deposit address. Fetch [`GET /autoramp-flow/detail`](api/autoramp-detail) <Icon icon="link" size={14} /> to retrieve the created deposit address under `fromDepositAddress`.
+The response only contains the new flow's `id` — not the deposit address. Fetch [`GET /autoramp-flow/detail`](/api/autoramp-detail) <Icon icon="link" size={14} /> to retrieve the created deposit address under `fromDepositAddress`.
 
 <Warning>
-  The deposit address starts `PENDING` with `address: null` — it is **not** available synchronously. Poll [`GET /deposit-address/detail`](api/deposit-address-detail) <Icon icon="link" size={14} /> or wait for the `DEPOSIT_ADDRESS_APPROVED` webhook before displaying it to the customer. See [Crypto Addresses](crypto-addresses#deposit-addresses-offramp-entry).
+  The deposit address starts `PENDING` with `address: null` — it is **not** available synchronously. Poll [`GET /deposit-address/detail`](/api/deposit-address-detail) <Icon icon="link" size={14} /> or wait for the `DEPOSIT_ADDRESS_APPROVED` webhook before displaying it to the customer. See [Crypto Addresses](/addresses/crypto-addresses#deposit-addresses-offramp-entry).
 </Warning>
 
 ### Error response
@@ -108,15 +108,15 @@ The response only contains the new flow's `id` — not the deposit address. Fetc
 
 ## Monitor via Webhooks
 
-Subscribe to `DEPOSIT_ADDRESS_APPROVED`, `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_CREATED`, and `TRADE_SETTLED` rather than polling. See [Webhooks](webhooks) and [Payload Examples](webhooks-payload-examples).
+Subscribe to `DEPOSIT_ADDRESS_APPROVED`, `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_CREATED`, and `TRADE_SETTLED` rather than polling. See [Webhooks](/concepts/webhooks) and [Payload Examples](/concepts/webhooks-payload-examples).
 
 <Note>
-  `TRADE_SETTLED` confirms the crypto-to-fiat trade executed — it does **not** confirm the bank transfer landed. There is no separate webhook for offramp bank-transfer completion; reconcile actual bank arrival through your own banking feed. See [Trades](trades).
+  `TRADE_SETTLED` confirms the crypto-to-fiat trade executed — it does **not** confirm the bank transfer landed. There is no separate webhook for offramp bank-transfer completion; reconcile actual bank arrival through your own banking feed. See [Trades](/transactions/trades).
 </Note>
 
 ## Related Guides
 
-- [Customer Lifecycle](customer-lifecycle)
-- [Bank Accounts](bank-accounts) · [Crypto Addresses](crypto-addresses)
-- [Autoramp Flows](autoramp-flows)
-- [Deposits](deposits) · [Trades](trades)
+- [Customer Lifecycle](/customers/customer-lifecycle)
+- [Bank Accounts](/addresses/bank-accounts) · [Crypto Addresses](/addresses/crypto-addresses)
+- [Autoramp Flows](/transactions/autoramp-flows)
+- [Deposits](/transactions/deposits) · [Trades](/transactions/trades)
