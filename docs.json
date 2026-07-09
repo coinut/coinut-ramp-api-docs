@@ -209,7 +209,13 @@
             "group": "Legacy",
             "pages": [
               "api/legacy-deposit-list",
-              "api/legacy-deposit-detail"
+              "api/legacy-deposit-detail",
+              "api/old-create-user",
+              "api/old-get-user",
+              "api/old-create-va",
+              "api/old-create-whitelist",
+              "api/old-update-whitelist",
+              "api/old-get-whitelist"
             ]
           }
         ]

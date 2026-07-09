@@ -75,10 +75,10 @@ TIMESTAMP=$(date +%s)
 NONCE="$(uuidgen | tr '[:upper:]' '[:lower:]')"
 HOST="ramp-sandbox.hexarails.ai"
 METHOD="GET"
-PATH="/balance"
+REQ_PATH="/balance"
 QUERY=""
 BODY_SHA256=""
-PAYLOAD="${METHOD}\n${HOST}\n${PATH}\n${QUERY}\n${BODY_SHA256}\n${TIMESTAMP}\n${NONCE}"
+PAYLOAD="${METHOD}\n${HOST}\n${REQ_PATH}\n${QUERY}\n${BODY_SHA256}\n${TIMESTAMP}\n${NONCE}"
 SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$API_SECRET" | cut -d' ' -f2)
 
 curl -X "$METHOD" "https://ramp-sandbox.hexarails.ai/balance" \
@@ -100,6 +100,7 @@ async function authedRequest(method, path, body = {}) {
   const timestamp = Math.floor(Date.now() / 1000).toString();
   const nonce = crypto.randomUUID();
   const host = new URL(BASE_URL).host;
+  const [urlPath, query] = path.split('?');
   const requestBody = method.toUpperCase() === 'GET' ? '' : JSON.stringify(body);
   const bodyHash = requestBody
     ? crypto.createHash('sha256').update(requestBody).digest('hex')
@@ -107,8 +108,8 @@ async function authedRequest(method, path, body = {}) {
   const canonical = [
     method.toUpperCase(),
     host,
-    path,
-    '',
+    urlPath,
+    query || '',
     bodyHash,
     timestamp,
     nonce,
@@ -132,6 +133,7 @@ async function authedRequest(method, path, body = {}) {
 
 // Usage
 authedRequest('GET', '/balance').then(console.log);
+authedRequest('GET', '/deposit-address?currency=USDT&network=TRX').then(console.log);
 ```
 
 ```python Python
@@ -146,9 +148,12 @@ def authed_request(method, path, body=None):
     timestamp = str(int(time.time()))
     nonce = '550e8400-e29b-41d4-a716-446655440000'
     host = 'ramp-sandbox.hexarails.ai'
+    parts = path.split('?', 1)
+    url_path = parts[0]
+    query = parts[1] if len(parts) > 1 else ''
     request_body = '' if method.upper() == 'GET' else json.dumps(body, separators=(',', ':'))
     body_hash = hashlib.sha256(request_body.encode()).hexdigest() if request_body else ''
-    payload = '\n'.join([method.upper(), host, path, '', body_hash, timestamp, nonce])
+    payload = '\n'.join([method.upper(), host, url_path, query, body_hash, timestamp, nonce])
     signature = hmac.new(
         API_SECRET.encode(),
         payload.encode(),
@@ -173,6 +178,7 @@ def authed_request(method, path, body=None):
 
 # Usage
 print(authed_request('GET', '/balance'))
+print(authed_request('GET', '/deposit-address?currency=USDT&network=TRX'))
 ```
 
 ```typescript TypeScript
@@ -190,6 +196,7 @@ async function authedRequest<T>(
   const timestamp = Math.floor(Date.now() / 1000).toString();
   const nonce = crypto.randomUUID();
   const host = new URL(BASE_URL).host;
+  const [urlPath, query] = path.split('?');
   const requestBody = method.toUpperCase() === 'GET' ? '' : JSON.stringify(body);
   const bodyHash = requestBody
     ? crypto.createHash('sha256').update(requestBody).digest('hex')
@@ -197,8 +204,8 @@ async function authedRequest<T>(
   const payload = [
     method.toUpperCase(),
     host,
-    path,
-    '',
+    urlPath,
+    query || '',
     bodyHash,
     timestamp,
     nonce,
@@ -222,6 +229,7 @@ async function authedRequest<T>(
 
 // Usage
 authedRequest('GET', '/balance').then(console.log);
+authedRequest('GET', '/deposit-address?currency=USDT&network=TRX').then(console.log);
 ```
 
 </CodeGroup>
