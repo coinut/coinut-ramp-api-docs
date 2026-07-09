@@ -10,16 +10,16 @@ Coinut sends webhook events to your registered callback URL when important event
 All webhooks:
 
 - Use the `POST` method
-- Send a JSON body using the `{event, payload}` envelope shown in [Webhook Payload Examples](webhooks-payload-examples)
+- Send a JSON body using the `{event, payload}` envelope shown in [Webhook Payload Examples](/concepts/webhooks-payload-examples)
 - Are only sent for event types you've subscribed to, and only once you have a callback URL configured (see [Setting Up Webhooks](#setting-up-webhooks))
-- Are signed with the same HMAC-SHA256 scheme used for incoming requests (see [Webhook Signature Verification](webhooks-signature-verification))
+- Are signed with the same HMAC-SHA256 scheme used for incoming requests (see [Webhook Signature Verification](/concepts/webhooks-signature-verification))
 - Accept any `2xx` response as a successful delivery — respond as soon as you've durably queued the event, since no delivery timeout is currently enforced (see [Delivery & Reliability](#delivery-reliability))
 
 ## Setting Up Webhooks
 
 <Steps>
   <Step title="Register callback URL">
-    Send [`POST /callback-url`](api/common-callback-url-update) <Icon icon="link" size={14} /> with your HTTPS endpoint.
+    Send [`POST /callback-url`](/api/common-callback-url-update) <Icon icon="link" size={14} /> with your HTTPS endpoint.
 
     ```json
     {
@@ -28,7 +28,7 @@ All webhooks:
     ```
   </Step>
   <Step title="Subscribe to events">
-    Send [`POST /subscribed-events`](api/common-subscribed-events-update) <Icon icon="link" size={14} /> with the event types you want to receive.
+    Send [`POST /subscribed-events`](/api/common-subscribed-events-update) <Icon icon="link" size={14} /> with the event types you want to receive.
 
     ```json
     {
@@ -45,7 +45,7 @@ All webhooks:
     </Note>
   </Step>
   <Step title="Verify signature">
-    Every webhook is signed exactly like an incoming API request (see [Authentication](authentication)): the same four headers (`X-API-Key`, `X-Timestamp`, `X-Nonce`, `X-Signature`) are sent with the callback, built from the same HMAC-SHA256 canonical string. Verify it before trusting the payload — see [Webhook Signature Verification](webhooks-signature-verification) for the exact construction.
+    Every webhook is signed exactly like an incoming API request (see [Authentication](/getting-started/authentication)): the same four headers (`X-API-Key`, `X-Timestamp`, `X-Nonce`, `X-Signature`) are sent with the callback, built from the same HMAC-SHA256 canonical string. Verify it before trusting the payload — see [Webhook Signature Verification](/concepts/webhooks-signature-verification) for the exact construction.
   </Step>
   <Step title="Acknowledge receipt">
     Return any `2xx` status as soon as you've durably stored or queued the event. There is currently no server-side delivery timeout, but you should still respond quickly and process asynchronously — a slow handler ties up a delivery worker rather than protecting you from anything. Failed deliveries are retried up to 5 times with increasing backoff (10 minutes, 1 hour, 1 day, 1 week), so your handler must be idempotent and safe to receive duplicate deliveries — see [Delivery & Reliability](#delivery-reliability).
@@ -70,7 +70,7 @@ All webhooks:
 | `TRADE_SETTLED` | Trade completed | `TradeDetailDataDto` |
 | `PAYMENT_SETTLED` | Payment completed | `GetPaymentDetailDataDto` |
 
-Each event type is also documented in the `WebhookEvent` schema in the [OpenAPI spec](/api-overview) (`components.schemas.WebhookEvent`), which lists every valid `event` enum value alongside the deprecated legacy names. See [Webhook Payload Examples](webhooks-payload-examples) for a full example payload of every event above.
+Each event type is also documented in the `WebhookEvent` schema in the [OpenAPI spec](/api-overview) (`components.schemas.WebhookEvent`), which lists every valid `event` enum value alongside the deprecated legacy names. See [Webhook Payload Examples](/concepts/webhooks-payload-examples) for a full example payload of every event above.
 
 ## Delivery & Reliability
 
@@ -92,7 +92,7 @@ Each event type is also documented in the `WebhookEvent` schema in the [OpenAPI 
 
 ## Best Practices
 
-- **Always verify signatures.** Validate every delivery against the [Webhook Signature Verification](webhooks-signature-verification) scheme before processing the payload — don't rely on network-level trust (e.g. IP allowlisting) alone.
+- **Always verify signatures.** Validate every delivery against the [Webhook Signature Verification](/concepts/webhooks-signature-verification) scheme before processing the payload — don't rely on network-level trust (e.g. IP allowlisting) alone.
 - **Handle idempotently.** See [Deduplication](#delivery-reliability) — dedup is best-effort, not a lifetime guarantee, so your handler must tolerate duplicate deliveries safely.
 - **Respond quickly, process asynchronously.** No delivery timeout is enforced today, but don't depend on that — acknowledge with a `2xx` as soon as the event is durably queued.
 - **Log everything.** Store raw payloads and headers for debugging.

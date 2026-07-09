@@ -1,0 +1,47 @@
+---
+title: "Autoramp Flows"
+description: "Automated onramp and offramp flow concepts and statuses."
+---
+
+An autoramp flow links an entry point (where funds arrive) to an exit point (where converted funds are sent), so every deposit at the entry automatically converts and settles at the exit — no manual trade required.
+
+| Flow type | Entry (`from`) | Exit (`to`) |
+| --- | --- | --- |
+| `ONRAMP` | Virtual account (fiat in) | Crypto address (crypto out) |
+| `OFFRAMP` | Deposit address (crypto in) | Bank account (fiat out) |
+
+## Creating a Flow
+
+Two convenience endpoints create the entry resource for you as part of flow creation — use these for new integrations:
+
+- [`POST /autoramp-flow/onramp`](/api/autoramp-onramp) <Icon icon="link" size={14} /> — takes `from: {customerId, currency}` and creates (or reuses) the virtual account automatically; `to` is an existing [crypto address](/addresses/crypto-addresses) `id`.
+- [`POST /autoramp-flow/offramp`](/api/autoramp-offramp) <Icon icon="link" size={14} /> — takes `from: {customerId, currency, network}` and creates (or reuses) the deposit address automatically; `to` is an existing [bank account](/addresses/bank-accounts) `id`.
+
+```json
+{
+  "from": { "customerId": "6ac34182-aa2e-4290-ab1b-302a09f451d1", "currency": "AUD" },
+  "to": "crypto_address_id_from_earlier"
+}
+```
+
+There's also a generic [`POST /autoramp-flow/create`](/api/autoramp-create) <Icon icon="link" size={14} />, which requires the entry resource (`from`) to already exist — pass its `id` directly along with `type: "ONRAMP" | "OFFRAMP"` and the exit `to` id. Prefer the dedicated onramp/offramp endpoints unless you're deliberately reusing a pre-existing virtual account or deposit address.
+
+Both create calls return only the new flow's `id` — the entry resource's own detail (VA banking fields, or deposit address) must be fetched separately from its own endpoint.
+
+## Status
+
+| Status | Meaning |
+| --- | --- |
+| `ENABLED` | Flow is active — deposits at the entry are auto-converted |
+| `DISABLED` | Flow is inactive — deposits are not auto-converted |
+
+## Other Operations
+
+- [`GET /autoramp-flow/list`](/api/autoramp-list) <Icon icon="link" size={14} /> — filter by `type` or `status`
+- [`GET /autoramp-flow/detail`](/api/autoramp-detail) <Icon icon="link" size={14} /> — includes the full entry/exit objects (`fromVirtualAccount` / `fromDepositAddress`, `toBankAccount` / `toCryptoAddress` — only the relevant pair is populated per flow type)
+- [`GET /autoramp-flow/trade-preview`](/api/autoramp-trade-preview) <Icon icon="link" size={14} /> — simulate a trade for a currency pair + amount without creating anything
+- [`POST /autoramp-flow/delete`](/api/autoramp-delete) <Icon icon="link" size={14} /> — deletes a flow
+
+## Monitoring
+
+Once a flow is `ENABLED`, deposits at the entry point trigger the standard [Deposits](/transactions/deposits) → [Trades](/transactions/trades) lifecycle. Subscribe to webhooks rather than polling — see [Webhooks](/concepts/webhooks).
