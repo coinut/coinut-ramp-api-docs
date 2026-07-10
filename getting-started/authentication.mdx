@@ -352,15 +352,6 @@ The `X-Timestamp` must be a **Unix timestamp in seconds** (not milliseconds or m
 | Load at runtime from secure storage | Pass in URL query parameters |
 | Restrict access via IAM roles | Commit to Git repositories |
 
-### Rotate Secrets Regularly
-
-Each partner has exactly **one** active API key/secret pair — there is no overlap window. Issuing a new pair immediately invalidates the old one, so plan rotation as a cutover, not a gradual migration:
-
-1. Generate a new key pair from the partner dashboard
-2. Fully test the new credentials against sandbox with a build that isn't serving production traffic yet
-3. Schedule a short maintenance window and deploy the new key/secret to all production instances at once
-4. Confirm production traffic is signing successfully with the new pair
-
 <Warning>
   Because only one key pair can be active at a time, any request signed with the old secret will start failing with `401 Unauthorized` the moment the new pair is saved — including in-flight requests from instances that haven't picked up the new secret yet. Roll out the new secret to every instance as close to simultaneously as your deployment tooling allows.
 </Warning>
