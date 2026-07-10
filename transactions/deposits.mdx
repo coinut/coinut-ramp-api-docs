@@ -16,9 +16,9 @@ A deposit record is created whenever funds arrive at a virtual account (fiat) or
 
 ## Fetching Deposits
 
-- [`GET /deposit/list`](/api-reference/deposit-list) <Icon icon="link" size={14} /> — paginated, filter by `customerId`, `currency`, or `status`
-- [`GET /deposit/detail`](/api-reference/deposit-detail) <Icon icon="link" size={14} /> — single deposit by `id`; scoped to the authenticated partner
-- [`POST /deposit/submitAttachmentFile`](/api-reference/deposit-submit-attachment) <Icon icon="link" size={14} /> — upload a compliance attachment for a deposit stuck in `ACTION_REQUIRED` (max 10MB)
+- [`GET /deposit/list`](/api-reference/deposit/list-partner-deposits) <Icon icon="link" size={14} /> — paginated, filter by `customerId`, `currency`, or `status`
+- [`GET /deposit/detail`](/api-reference/deposit/get-partner-deposit-detail) <Icon icon="link" size={14} /> — single deposit by `id`; scoped to the authenticated partner
+- [`POST /deposit/submitAttachmentFile`](/api-reference/deposit/submit-attachment-for-a-partner-deposit) <Icon icon="link" size={14} /> — upload a compliance attachment for a deposit stuck in `ACTION_REQUIRED` (max 10MB)
 
 A deposit's `receiverVirtualAccount` or `receiverDepositAddress` field identifies which rail it arrived on; `txid` / `voutIndexTxKey` identify the underlying transaction.
 
@@ -28,7 +28,7 @@ A deposit's `receiverVirtualAccount` or `receiverDepositAddress` field identifie
 
 ## Legacy Deposits
 
-EUR/GBP deposits made under the older deposit flow are tracked as a separate resource with numeric IDs: [`GET /legacy-deposit/list`](/api-reference/legacy-deposit-list) <Icon icon="link" size={14} /> and [`GET /legacy-deposit/detail`](/api-reference/legacy-deposit-detail) <Icon icon="link" size={14} />. New integrations should not need these — they exist for reconciling historical records. A [Trade](/transactions/trades) originating from a legacy deposit carries a `legacyDeposit` object instead of `deposit`.
+EUR/GBP deposits made under the older deposit flow are tracked as a separate resource with numeric IDs: [`GET /legacy-deposit/list`](/api-reference/legacy-deposit/list-legacy-partner-deposits) <Icon icon="link" size={14} /> and [`GET /legacy-deposit/detail`](/api-reference/legacy-deposit/get-legacy-partner-deposit-detail) <Icon icon="link" size={14} />. New integrations should not need these — they exist for reconciling historical records. A [Trade](/transactions/trades) originating from a legacy deposit carries a `legacyDeposit` object instead of `deposit`.
 
 ## Monitoring
 
