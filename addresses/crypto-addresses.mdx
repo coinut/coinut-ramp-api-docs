@@ -46,12 +46,6 @@ Unlike crypto addresses, deposit addresses go through an **approval step** and c
 | `REJECTED` | Rejected — do not display, contact support |
 | `DELETED` | Removed |
 
-<Warning>
-  A newly created deposit address starts `PENDING` with `address: null`. It is **not** available synchronously — poll [`GET /deposit-address/detail`](/api-reference/deposit-address/get-deposit-address-detail) <Icon icon="link" size={14} /> or listen for the `DEPOSIT_ADDRESS_APPROVED` webhook, and only show the address to the customer once `status` leaves `PENDING` and `address` is populated.
-</Warning>
-
-Supported networks: `ETH` and `TRX` today. `MATIC` is accepted by the schema but not yet supported end-to-end — don't offer it to customers.
-
 ## Related
 
 - [Bank Accounts](/addresses/bank-accounts) — the fiat-side equivalent for offramp payouts
