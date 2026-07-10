@@ -30,27 +30,28 @@
               "getting-started/quickstart",
               "getting-started/authentication",
               "getting-started/integration-journey",
-              "api-overview"
+              "api-overview",
+              "getting-started/ip-whitelisting"
             ]
           },
           {
             "group": "Customers & Compliance",
             "pages": [
-              "customers/customer-lifecycle",
-              "customers/access-control"
+              "customers/customer-lifecycle"
             ]
           },
           {
-            "group": "Addresses",
+            "group": "Deposit Rails",
+            "pages": [
+              "virtual-accounts/virtual-accounts-guide",
+              "deposit-rails/deposit-addresses"
+            ]
+          },
+          {
+            "group": "Destinations",
             "pages": [
               "addresses/crypto-addresses",
               "addresses/bank-accounts"
-            ]
-          },
-          {
-            "group": "Virtual Accounts",
-            "pages": [
-              "virtual-accounts/virtual-accounts-guide"
             ]
           },
           {
@@ -64,33 +65,31 @@
             ]
           },
           {
-            "group": "Guides",
+            "group": "Auto Ramp",
             "pages": [
-              "guides/onramp-integration",
-              "guides/offramp-integration",
-              "guides/qr-code-payments"
+              "guides/onramp-flow",
+              "guides/offramp-flow"
             ]
           },
           {
-            "group": "Core Concepts",
+            "group": "Payment",
             "pages": [
-              {
-                "group": "Webhooks",
-                "pages": [
-                  "concepts/webhooks",
-                  "concepts/webhooks-payload-examples",
-                  "concepts/webhooks-signature-verification"
-                ]
-              },
-              "concepts/errors"
+              "guides/payment-flow"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "concepts/webhooks",
+              "concepts/webhooks-signature-verification",
+              "concepts/webhooks-retries"
             ]
           },
           {
             "group": "Coverages",
             "pages": [
               "coverage/blockchain",
-              "coverage/currencies",
-              "coverage/integration-model"
+              "coverage/currencies"
             ]
           }
         ]

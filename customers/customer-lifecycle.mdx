@@ -16,7 +16,7 @@ Call [`POST /customer/create`](/api-reference/customer/create-a-new-customer) <I
   "type": "DEPOSITOR",
   "isIndividual": true,
   "sumsubShareToken": "_act-sbx-jwt-xxxx",
-  "externalId": "partner-customer-001",
+  "externalId": "ext-customer-001",
   "dateOfBirth": "1990-01-01",
   "country": "SGP",
   "nationality": "Singapore",
@@ -24,15 +24,6 @@ Call [`POST /customer/create`](/api-reference/customer/create-a-new-customer) <I
   "address": "1 Raffles Place, Singapore 048616"
 }
 ```
-
-| Field | Required | Description |
-| --- | --- | --- |
-| `name` | Yes | Customer name |
-| `email` | Yes | Customer email |
-| `type` | No | `DEPOSITOR` or `PAYEE` |
-| `isIndividual` | No | Individual vs. corporate customer |
-| `sumsubShareToken` | No | If provided, KYC data is pulled via the Sumsub API directly instead of returning a hosted `sumsubLink` — don't provide both |
-| `externalId` | No | Your own internal user ID, for reconciliation |
 
 <Tip>
   Always set `externalId` to your internal user ID. It's echoed back on customer records and webhook payloads, which makes reconciliation and webhook routing far simpler than matching on Coinut's `id` alone.
@@ -57,7 +48,7 @@ PENDING → CONFIRMED | REJECTED
 
 Track the transition to `CONFIRMED` one of two ways:
 
-- **Webhook (recommended)** — subscribe to `CUSTOMER_APPROVED` / `CUSTOMER_REJECTED` / `CUSTOMER_DELETED`. See [Webhooks](/concepts/webhooks) and [Payload Examples](/concepts/webhooks-payload-examples).
+- **Webhook (recommended)** — subscribe to `CUSTOMER_APPROVED` / `CUSTOMER_REJECTED` / `CUSTOMER_DELETED`. See [Webhooks](/concepts/webhooks).
 - **Polling** — call [`GET /customer/detail`](/api-reference/customer/get-customer-details) <Icon icon="link" size={14} /> with `id`, `email`, or `externalId`.
 
 Do not attempt to create virtual accounts, bank accounts, crypto addresses, or autoramp flows for a customer until they reach `CONFIRMED` — those calls will fail against a `PENDING` customer.
@@ -65,5 +56,4 @@ Do not attempt to create virtual accounts, bank accounts, crypto addresses, or a
 ## Related
 
 - [Crypto Addresses](/addresses/crypto-addresses) and [Bank Accounts](/addresses/bank-accounts) — registered once a customer is `CONFIRMED`
-- [Autoramp Flows](/transactions/autoramp-flows) — the onramp/offramp flows a customer is connected to
-- [`GET /customer/list`](/api-reference/customer/get-customer-list) <Icon icon="link" size={14} /> — paginated customer listing, filterable by `status`, `createTime`, and fuzzy-matched `realName`; sortable via `sortField`/`sortDirection`
+- [Onramp Flow](/guides/onramp-flow) · [Offramp Flow](/guides/offramp-flow)

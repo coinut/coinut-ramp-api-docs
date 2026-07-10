@@ -1,11 +1,7 @@
 ---
 title: "Crypto Addresses"
-description: "Registering customer crypto addresses and understanding deposit addresses."
+description: "Registering customer-owned crypto wallet addresses as onramp settlement destinations."
 ---
-
-Two distinct address types cover the crypto side of a flow: **crypto addresses** (a customer's own wallet — the exit point for onramp) and **deposit addresses** (a Coinut-issued receiving address — the entry point for offramp). They are separate resources with separate lifecycles.
-
-## Crypto Addresses (Onramp Exit)
 
 A crypto address is the customer's own wallet — where converted crypto is sent after an onramp deposit settles.
 
@@ -21,33 +17,12 @@ Call [`POST /crypto-address/add`](/api-reference/crypto-address/add-customers-cr
 }
 ```
 
-| Field | Required | Description |
-| --- | --- | --- |
-| `customerId` | Yes | Must belong to a `CONFIRMED` customer |
-| `currency` | Yes | `USDT` or `USDC` |
-| `address` | Yes | Destination wallet address |
-| `label` | Yes | Display label |
-| `network` | No | `ETH` (ERC-20), `TRX` (TRC-20), or `MATIC` (Polygon) |
-
-Crypto addresses have **no approval step** — there is no `status` field on this resource, unlike deposit addresses below. The address is usable immediately after creation.
+Crypto addresses have **no approval step** — there is no `status` field on this resource. The address is usable immediately after creation.
 
 See [`GET /crypto-address/list`](/api-reference/crypto-address/get-customers-crypto-address-list) <Icon icon="link" size={14} /> and [`GET /crypto-address/detail`](/api-reference/crypto-address/get-customers-crypto-address-detail) <Icon icon="link" size={14} /> to look up existing addresses.
 
-## Deposit Addresses (Offramp Entry)
-
-A deposit address is a Coinut-generated receiving address — where a customer sends crypto to trigger an offramp. It's created automatically when you call [`POST /autoramp-flow/offramp`](/api-reference/autoramp-flow/create-an-offramp-flow-with-deposit-address) <Icon icon="link" size={14} /> (see [Autoramp Flows](/transactions/autoramp-flows)), or directly via [`POST /deposit-address/create`](/api-reference/deposit-address/create-a-deposit-address) <Icon icon="link" size={14} />.
-
-Unlike crypto addresses, deposit addresses go through an **approval step** and carry a `status`:
-
-| Status | Meaning |
-| --- | --- |
-| `PENDING` | Just created — `address` is **not yet populated** |
-| `VERIFIED` | Approved — `address` is populated and safe to display |
-| `REJECTED` | Rejected — do not display, contact support |
-| `DELETED` | Removed |
-
 ## Related
 
-- [Bank Accounts](/addresses/bank-accounts) — the fiat-side equivalent for offramp payouts
-- [Autoramp Flows](/transactions/autoramp-flows) — links an address to automatic conversion
-- [Webhooks](/concepts/webhooks) — `DEPOSIT_ADDRESS_APPROVED`, `DEPOSIT_ADDRESS_REJECTED` events
+- [Deposit Addresses](/deposit-rails/deposit-addresses) — Coinut-issued receiving addresses for offramp
+- [Bank Accounts](/addresses/bank-accounts) — the fiat-side destination for offramp payouts
+- [Onramp Flow](/guides/onramp-flow) — full onramp flow

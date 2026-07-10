@@ -1,0 +1,54 @@
+---
+title: "Retries"
+description: "Webhook delivery retry schedule, deduplication, and reliability guarantees."
+---
+
+Coinut automatically retries failed webhook deliveries to ensure your system receives every event.
+
+## Retry Schedule
+
+Failed deliveries are retried up to **5 times total** (1 initial attempt + 4 retries) with increasing backoff:
+
+| Attempt | Delay after previous failure |
+| --- | --- |
+| 1st (initial) | — |
+| 2nd | 10 minutes |
+| 3rd | 1 hour |
+| 4th | 1 day |
+| 5th | 1 week |
+
+## Failure Triggers
+
+A retry is scheduled when either:
+
+- The callback payload **fails to build** (e.g., the source record cannot be found)
+- The HTTP delivery itself **fails** (timeout, connection error, or non-`2xx` response)
+
+## Scheduler
+
+Delivery (including retries) is processed by a scheduler that runs **every 1 minute**. Expect up to ~1 minute of additional latency on top of any scheduled retry delay.
+
+## Success Criteria
+
+Any `2xx` HTTP response marks the delivery as successful. The event status is set to `SENT` and no further retries are attempted for that occurrence.
+
+## After All Retries Are Exhausted
+
+If all 5 attempts fail, the event **remains in a failed state** — no further automatic retries are performed. If the same underlying event fires again upstream (e.g., a corrected retry from the source system), a **new delivery cycle** starts for that new occurrence.
+
+## Deduplication
+
+Deduplication is scoped per account and keyed on:
+
+- Account ID
+- Event type
+- Source record ID (surfaced to you as `payload.id`)
+
+This means repeat deliveries of the **same underlying occurrence** to the same account are suppressed. However, deduplication is best-effort — `event` + `payload.id` alone is not a lifetime guarantee against redelivery. Always make your handler **idempotent**.
+
+## Best Practices for Handling Retries
+
+- **Idempotency first.** Use `event` + `payload.id` as an idempotency key in your processing pipeline — but don't rely on it as the sole guard.
+- **Respond fast.** Return a `2xx` as soon as the event is durably queued. Don't run business logic synchronously in the webhook handler.
+- **No server-side timeout.** Currently there is no delivery timeout enforced on the sender side — but respond promptly regardless, as this behavior may change.
+- **HTTPS only.** The callback URL field accepts plain HTTP, but payloads include customer and transaction data — always use HTTPS.

@@ -1,5 +1,5 @@
 ---
-title: "Onramp Integration"
+title: "Onramp Flow"
 description: "Convert fiat into cryptocurrency via a virtual account and autoramp flow."
 ---
 
@@ -16,7 +16,7 @@ Examples:
 
 <Steps>
   <Step title="Set up the flow">
-    Partner creates an onramp autoramp flow for a customer, linking a new AUD virtual account to the customer's USDT wallet on TRX.
+    Create an onramp autoramp flow for a customer, linking a new AUD virtual account to the customer's USDT wallet on TRX.
   </Step>
   <Step title="Customer sends fiat">
     Customer transfers AUD 1,000 into the virtual account via bank transfer or PayID.
@@ -52,32 +52,6 @@ Every step must complete before moving to the next.
 
 Create the onramp flow with [`POST /autoramp-flow/onramp`](/api-reference/autoramp-flow/create-an-onramp-flow-with-virtual-account) <Icon icon="link" size={14} />. The virtual account is created automatically from `from`.
 
-### Request fields
-
-| Field | Required | Description |
-| --- | --- | --- |
-| `from.customerId` | Yes | The customer's `id` |
-| `from.currency` | Yes | Fiat currency for the new virtual account: `AUD`, `EUR`, `GBP`, `SGD`, or `USD` |
-| `to` | Yes | An existing [crypto address](/addresses/crypto-addresses) `id` for this customer |
-
-### Request
-
-```bash
-curl -X POST https://ramp-sandbox.hexarails.ai/autoramp-flow/onramp \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $API_KEY" \
-  -H "X-Timestamp: $(date +%s)" \
-  -H "X-Nonce: $NONCE" \
-  -H "X-Signature: $SIGNATURE" \
-  -d '{
-    "from": {
-      "customerId": "6ac34182-aa2e-4290-ab1b-302a09f451d1",
-      "currency": "AUD"
-    },
-    "to": "crypto_addr_id_xyz789"
-  }'
-```
-
 ### Response
 
 ```json
@@ -102,11 +76,10 @@ The response only contains the new flow's `id`. Fetch [`GET /autoramp-flow/detai
 
 ## Monitor via Webhooks
 
-Subscribe to `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_CREATED`, and `TRADE_SETTLED` rather than polling. See [Webhooks](/concepts/webhooks), [Payload Examples](/concepts/webhooks-payload-examples), and [Trades](/transactions/trades) for on-chain verification once `TRADE_SETTLED` fires.
+Subscribe to `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_CREATED`, and `TRADE_SETTLED` rather than polling. See [Webhooks](/concepts/webhooks), and [Trades](/transactions/trades) for on-chain verification once `TRADE_SETTLED` fires.
 
-## Related Guides
+## Related
 
 - [Customer Lifecycle](/customers/customer-lifecycle)
 - [Crypto Addresses](/addresses/crypto-addresses)
-- [Autoramp Flows](/transactions/autoramp-flows)
 - [Deposits](/transactions/deposits) · [Trades](/transactions/trades)

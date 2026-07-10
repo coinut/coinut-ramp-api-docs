@@ -1,6 +1,6 @@
 ---
 title: "API Overview"
-description: "Base URLs, authentication, conventions, and patterns for the Coinut Partner Ramp API."
+description: "Base URLs, authentication, conventions, and patterns for the Coinut Ramp API."
 ---
 
 ## Base URLs
@@ -19,220 +19,22 @@ The Playground is useful for a first check that your **API key and secret are va
 
 | | API Playground | Your Service (Sandbox / Production) |
 | --- | --- | --- |
-| Who computes the HMAC-SHA256 signature | The Playground's own backend, using the API key/secret you paste into the docs UI | Your service, using the canonical-string algorithm described below |
+| Who computes the HMAC-SHA256 signature | The Playground's own backend, using the API key/secret you paste into the docs UI | Your service, using the canonical-string algorithm described in the Authentication page |
 | What it proves | Your API key/secret pair is valid and active | Your actual signing implementation is correct end-to-end |
 | Where credentials are entered | Directly into the browser-based Playground form | Held server-side in your own environment |
 
-Once you've confirmed your API key and secret work in the Playground, move on to implementing the signature yourself — using the canonical string and HMAC-SHA256 steps below — and test that implementation directly against the sandbox base URL (`https://ramp-sandbox.hexarails.ai`). That's the only way to validate the request-signing code you'll actually run in production.
+Once you've confirmed your API key and secret work in the Playground, move on to implementing the signature yourself — see the [Authentication](/getting-started/authentication) page for the full canonical string spec and code examples — and test that implementation directly against the sandbox base URL (`https://ramp-sandbox.hexarails.ai`).
 
 ## Authentication
 
-Every request must be authenticated using **HMAC-SHA256** request signing. You receive an API key and secret during partner onboarding.
+Every request must be authenticated using **HMAC-SHA256** request signing. You receive an API key and secret during onboarding. See the [Authentication](/getting-started/authentication) page for the full canonical string format, language-specific code examples, and best practices.
 
-### Required Headers
-
-| Header | Description |
-| --- | --- |
-| `X-API-Key` | Your API key |
-| `X-Timestamp` | Unix timestamp in seconds |
-| `X-Nonce` | A unique random string for each request |
-| `X-Signature` | HMAC-SHA256 hex digest of the canonical string described on the [Authentication](/getting-started/authentication) page |
-
-### Signature Algorithm
-
-Build the canonical string with these newline-delimited parts, then sign it with HMAC-SHA256:
-
-```text
-METHOD
-HOST
-PATH
-QUERY
-BODY_SHA256_HEX
-TIMESTAMP
-NONCE
-```
-
-<Note>
-  Use the exact host from the environment you call, keep query parameters in their original order, and use an empty body hash for `GET` and `multipart/form-data` requests. See the [Authentication](/getting-started/authentication) page for the full language examples.
-</Note>
-
-<Note>
-  The current OpenAPI file still lists `api_secret` as a security scheme. The narrative integration contract uses the secret as the HMAC signing key, not as a request header. Keep your implementation aligned with the signed-header flow shown here unless Coinut gives you an environment-specific override.
-</Note>
+In short: include `X-API-Key`, `X-Timestamp`, `X-Nonce`, and `X-Signature` headers on every request. The signature is built from a newline-delimited canonical string (`METHOD\nHOST\nPATH\nQUERY\nBODY_SHA256_HEX\nTIMESTAMP\nNONCE`) signed with your API secret.
 
 <Note>
   `X-Timestamp` is included in the signed canonical string but is **not currently checked against server time** — there is no replay-window enforcement today. Keep your server clock accurate with NTP anyway: it's required for audit trails, and a staleness check may be added in the future without notice.
 </Note>
 
-### Authenticated Request Example
-
-<CodeGroup>
-
-```bash cURL
-API_KEY="your_api_key"
-API_SECRET="your_api_secret"
-TIMESTAMP=$(date +%s)
-NONCE="$(uuidgen | tr '[:upper:]' '[:lower:]')"
-HOST="ramp-sandbox.hexarails.ai"
-METHOD="GET"
-REQ_PATH="/balance"
-QUERY=""
-BODY_SHA256=""
-PAYLOAD="${METHOD}\n${HOST}\n${REQ_PATH}\n${QUERY}\n${BODY_SHA256}\n${TIMESTAMP}\n${NONCE}"
-SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$API_SECRET" | cut -d' ' -f2)
-
-curl -X "$METHOD" "https://ramp-sandbox.hexarails.ai/balance" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $API_KEY" \
-  -H "X-Timestamp: $TIMESTAMP" \
-  -H "X-Nonce: $NONCE" \
-  -H "X-Signature: $SIGNATURE"
-```
-
-```javascript JavaScript
-const crypto = require('crypto');
-
-const API_KEY = 'your_api_key';
-const API_SECRET = 'your_api_secret';
-const BASE_URL = 'https://ramp-sandbox.hexarails.ai';
-
-async function authedRequest(method, path, body = {}) {
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const nonce = crypto.randomUUID();
-  const host = new URL(BASE_URL).host;
-  const [urlPath, query] = path.split('?');
-  const requestBody = method.toUpperCase() === 'GET' ? '' : JSON.stringify(body);
-  const bodyHash = requestBody
-    ? crypto.createHash('sha256').update(requestBody).digest('hex')
-    : '';
-  const canonical = [
-    method.toUpperCase(),
-    host,
-    urlPath,
-    query || '',
-    bodyHash,
-    timestamp,
-    nonce,
-  ].join('\\n');
-  const signature = crypto.createHmac('sha256', API_SECRET).update(canonical).digest('hex');
-
-  const response = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
-      'X-Timestamp': timestamp,
-      'X-Nonce': nonce,
-      'X-Signature': signature,
-    },
-    body: method.toUpperCase() === 'GET' ? undefined : JSON.stringify(body),
-  });
-
-  return response.json();
-}
-
-// Usage
-authedRequest('GET', '/balance').then(console.log);
-authedRequest('GET', '/deposit-address?currency=USDT&network=TRX').then(console.log);
-```
-
-```python Python
-import hmac, hashlib, json, time, requests
-
-API_KEY = 'your_api_key'
-API_SECRET = 'your_api_secret'
-BASE_URL = 'https://ramp-sandbox.hexarails.ai'
-
-def authed_request(method, path, body=None):
-    body = body or {}
-    timestamp = str(int(time.time()))
-    nonce = '550e8400-e29b-41d4-a716-446655440000'
-    host = 'ramp-sandbox.hexarails.ai'
-    parts = path.split('?', 1)
-    url_path = parts[0]
-    query = parts[1] if len(parts) > 1 else ''
-    request_body = '' if method.upper() == 'GET' else json.dumps(body, separators=(',', ':'))
-    body_hash = hashlib.sha256(request_body.encode()).hexdigest() if request_body else ''
-    payload = '\n'.join([method.upper(), host, url_path, query, body_hash, timestamp, nonce])
-    signature = hmac.new(
-        API_SECRET.encode(),
-        payload.encode(),
-        hashlib.sha256
-    ).hexdigest()
-
-    headers = {
-        'Content-Type': 'application/json',
-        'X-API-Key': API_KEY,
-        'X-Timestamp': timestamp,
-        'X-Nonce': nonce,
-        'X-Signature': signature,
-    }
-
-    resp = requests.request(
-        method,
-        f'{BASE_URL}{path}',
-        headers=headers,
-        json=None if method.upper() == 'GET' else body
-    )
-    return resp.json()
-
-# Usage
-print(authed_request('GET', '/balance'))
-print(authed_request('GET', '/deposit-address?currency=USDT&network=TRX'))
-```
-
-```typescript TypeScript
-import crypto from 'crypto';
-
-const API_KEY = 'your_api_key';
-const API_SECRET = 'your_api_secret';
-const BASE_URL = 'https://ramp-sandbox.hexarails.ai';
-
-async function authedRequest<T>(
-  method: string,
-  path: string,
-  body: Record<string, unknown> = {}
-): Promise<T> {
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const nonce = crypto.randomUUID();
-  const host = new URL(BASE_URL).host;
-  const [urlPath, query] = path.split('?');
-  const requestBody = method.toUpperCase() === 'GET' ? '' : JSON.stringify(body);
-  const bodyHash = requestBody
-    ? crypto.createHash('sha256').update(requestBody).digest('hex')
-    : '';
-  const payload = [
-    method.toUpperCase(),
-    host,
-    urlPath,
-    query || '',
-    bodyHash,
-    timestamp,
-    nonce,
-  ].join('\\n');
-  const signature = crypto.createHmac('sha256', API_SECRET).update(payload).digest('hex');
-
-  const response = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
-      'X-Timestamp': timestamp,
-      'X-Nonce': nonce,
-      'X-Signature': signature,
-    },
-    body: method.toUpperCase() === 'GET' ? undefined : JSON.stringify(body),
-  });
-
-  return response.json() as T;
-}
-
-// Usage
-authedRequest('GET', '/balance').then(console.log);
-authedRequest('GET', '/deposit-address?currency=USDT&network=TRX').then(console.log);
-```
-
-</CodeGroup>
 
 ## Request & Response Format
 
@@ -242,6 +44,8 @@ authedRequest('GET', '/deposit-address?currency=USDT&network=TRX').then(console.
 
 ### Success Response
 
+All responses use this envelope:
+
 ```json
 {
   "status": "SUCCESS",
@@ -249,7 +53,13 @@ authedRequest('GET', '/deposit-address?currency=USDT&network=TRX').then(console.
 }
 ```
 
+<Note>
+  A small set of older endpoints return their data object directly without the `{status, data}` wrapper. All current endpoints follow the envelope above — see the API Reference for per-endpoint response schemas.
+</Note>
+
 ### Error Response
+
+Errors are returned in a consistent envelope. The `status` field indicates the error category, and `message` provides a human-readable description.
 
 ```json
 {
@@ -258,58 +68,26 @@ authedRequest('GET', '/deposit-address?currency=USDT&network=TRX').then(console.
 }
 ```
 
+| `status` | Meaning |
+| --- | --- |
+| `INVALID_PARAMETERS` | Missing or invalid request parameters (validation failed) |
+| `UNAUTHORISED` | Authentication failed — bad signature, API key, timestamp, or nonce |
+| `FAILED` | Internal or downstream processing error |
+
 ## HTTP Status Codes
+
+The API returns three HTTP status codes in normal operation. There is no `429` or `500` — every application-level failure is reported as `422` with a `status`/`message` body.
 
 | Code | Meaning |
 | --- | --- |
-| `200` | Request succeeded. A small set of legacy endpoints (see [Errors](/concepts/errors)) return `200` even on failure — check the JSON `status` field on those routes. |
-| `401` | Authentication failed — missing/invalid signature, API key, timestamp, or nonce. See [Authentication](/getting-started/authentication). |
-| `403` | Not returned by the application itself (no `ForbiddenException` exists anywhere in this service's code) — if you see one, it was blocked by infrastructure in front of the API (WAF/gateway/IP block) before your request reached application auth. |
-| `422` | Request was authenticated but invalid, or a downstream operation failed. |
+| `200` | Request succeeded On a small set of older endpoints, check the JSON `status` field rather than relying on the HTTP code alone |
+| `401` | Authentication failed — see [Authentication](/getting-started/authentication) |
+| `422` | Request was authenticated but invalid, or a downstream operation failed |
 
-## Pagination
-
-List endpoints return paginated results using these fields:
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `pageNum` | integer | Current page number (1-based) |
-| `pageSize` | integer | Items per page |
-| `total` | integer | Total matching records |
-
-### Example Paginated Response
-
-```json
-{
-  "status": "SUCCESS",
-  "data": {
-    "list": [ /* items */ ],
-    "pageNum": 1,
-    "pageSize": 10,
-    "total": 47
-  }
-}
-```
-
-Pass `pageNum` and `pageSize` as query parameters on list endpoints. `pageSize` defaults to 10 and caps at 100.
-
-## API Categories
-
-| Category | Description | Endpoints |
-| --- | --- | --- |
-| **Common** | Balance, configuration, health, webhook settings | [`GET /health`](/api-reference/common/health-check) <Icon icon="link" size={14} /> · [`GET /balance`](/api-reference/common/get-balance) <Icon icon="link" size={14} /> · [`GET /callback-url`](/api-reference/common/get-callback-url) <Icon icon="link" size={14} /> |
-| **Customers** | Customer onboarding and KYC verification | [`POST /customer/create`](/api-reference/customer/create-a-new-customer) <Icon icon="link" size={14} /> · [`GET /customer/detail`](/api-reference/customer/get-customer-details) <Icon icon="link" size={14} /> · [`GET /customer/list`](/api-reference/customer/get-customer-list) <Icon icon="link" size={14} /> |
-| **Virtual Accounts** | Fiat virtual accounts for receiving payments | [`POST /virtual-account/create`](/api-reference/virtual-account/create-a-fiat-virtual-account) <Icon icon="link" size={14} /> · [`GET /virtual-account/list`](/api-reference/virtual-account/get-fiat-va-list) <Icon icon="link" size={14} /> · [`GET /virtual-account/detail`](/api-reference/virtual-account/get-fiat-va-detail) <Icon icon="link" size={14} /> |
-| **Crypto Addresses** | Destination wallet addresses for payouts | [`POST /crypto-address/add`](/api-reference/crypto-address/add-customers-crypto-address) <Icon icon="link" size={14} /> · [`GET /crypto-address/list`](/api-reference/crypto-address/get-customers-crypto-address-list) <Icon icon="link" size={14} /> · [`GET /crypto-address/detail`](/api-reference/crypto-address/get-customers-crypto-address-detail) <Icon icon="link" size={14} /> |
-| **Deposit Addresses** | Source crypto addresses for customer deposits | [`POST /deposit-address/create`](/api-reference/deposit-address/create-a-deposit-address) <Icon icon="link" size={14} /> · [`GET /deposit-address/list`](/api-reference/deposit-address/get-deposit-address-list) <Icon icon="link" size={14} /> |
-| **Bank Accounts** | Customer bank accounts for fiat payouts | [`POST /bank-account/add`](/api-reference/bank-account/add-customers-bank-account) <Icon icon="link" size={14} /> · [`GET /bank-account/list`](/api-reference/bank-account/get-customers-bank-account-list) <Icon icon="link" size={14} /> · [`GET /bank-account/detail`](/api-reference/bank-account/get-customers-bank-account-detail) <Icon icon="link" size={14} /> |
-| **Autoramp** | Automated onramp and offramp flows | [`POST /autoramp-flow/create`](/api-reference/autoramp-flow/create-a-new-autoramp-flow) <Icon icon="link" size={14} /> · [`GET /autoramp-flow/list`](/api-reference/autoramp-flow/get-autoramp-flow-list) <Icon icon="link" size={14} /> |
-| **Deposits** | Deposit transaction monitoring | [`GET /deposit/list`](/api-reference/deposit/list-partner-deposits) <Icon icon="link" size={14} /> · [`GET /deposit/detail`](/api-reference/deposit/get-partner-deposit-detail) <Icon icon="link" size={14} /> |
-| **Trades** | OTC trade records and history | [`GET /trade/list`](/api-reference/trade/list-otc-trades) <Icon icon="link" size={14} /> · [`GET /trade/detail`](/api-reference/trade/get-otc-trade-detail) <Icon icon="link" size={14} /> |
-| **Payments** | Direct fiat payments to beneficiaries | [`POST /payment/create`](/api-reference/payment/create-payment) <Icon icon="link" size={14} /> · [`GET /payment/list`](/api-reference/payment/get-payment-list) <Icon icon="link" size={14} /> |
+A `403` is never returned by the API itself — if you see one, it was blocked by infrastructure (WAF/gateway/IP block) before reaching the application.
 
 ## Rate Limiting
 
 <Note>
-  The Partner Ramp application itself does not implement per-key rate limiting, a `429` response, or a `Retry-After` header today — any throttling in front of the API would be enforced at the infrastructure/gateway level, outside this service. Don't build client logic that depends on a specific limit or on receiving `429`; contact support if you're planning a high-volume integration so current infrastructure limits can be confirmed for your account.
+  The Ramp application itself does not implement per-key rate limiting, a `429` response, or a `Retry-After` header today — any throttling in front of the API would be enforced at the infrastructure/gateway level, outside this service. Don't build client logic that depends on a specific limit or on receiving `429`; contact support if you're planning a high-volume integration so current infrastructure limits can be confirmed for your account.
 </Note>

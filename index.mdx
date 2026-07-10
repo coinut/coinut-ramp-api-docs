@@ -1,25 +1,30 @@
 ---
 title: "Introduction"
-description: "Complete API documentation for Coinut Partner Ramp. Onramp, Offramp, and Virtual Account APIs for seamless crypto-fiat integration."
+description: "Complete API documentation for Coinut Ramp. Onramp, Offramp, Deposit Rails, and Destinations APIs for seamless crypto-fiat integration."
 ---
 
-## About Coinut Partner Ramp
+## About Coinut Ramp
 
-Coinut Partner Ramp is the crypto-fiat infrastructure layer built by Coinut, a regulated digital asset trading and payments platform founded in 2013. We operate across **Singapore, Switzerland, Canada, and USA**, providing compliant payment rails to businesses worldwide.
+Coinut Ramp is the crypto-fiat infrastructure layer built by Coinut, a regulated digital asset trading and payments platform founded in 2013. We operate across **Singapore, Switzerland, Canada, and USA**, providing compliant payment rails to businesses worldwide.
 
-Coinut Partner Ramp lets you offer cryptocurrency services to your customers without building complex blockchain infrastructure or navigating regulatory requirements yourself.
+Coinut Ramp lets you offer cryptocurrency services to your customers without building complex blockchain infrastructure or navigating regulatory requirements yourself.
 
-## Integration Modes
+## How to Use
+
+Two integration paths — use either or both.
 
 | Mode | Best For | How It Works |
 | --- | --- | --- |
-| **Direct API** | Enterprise, platforms, marketplaces | Direct API calls, bulk operations, you manage customer aggregation |
+| **API** | Enterprise, platforms, marketplaces | Direct API calls, bulk operations, you manage customer aggregation and UX |
+| **Dashboard** | Operations, support, quick lookups | Web UI for managing customers, virtual accounts, and transactions |
 
-Choose Autoramp for faster time-to-market with individual users. Choose Direct API if you operate a platform with pooled liquidity or need full control over the customer experience.
+<Note>
+  The Dashboard is **partially available** — customer management, virtual accounts, and trade/deposit tracking are already functional. Additional features (autoramp flows, address management, API key management) are under development. All capabilities are fully available through the API.
+</Note>
 
 ## Architecture
 
-Your application sends signed HTTPS requests to the Coinut Partner Ramp API. We handle the complexity of banking integrations, blockchain transactions, compliance checks, and liquidity management. You receive webhook notifications for every state change.
+Your application sends signed HTTPS requests to the Coinut Ramp API. We handle the complexity of banking integrations, blockchain transactions, compliance checks, and liquidity management. You receive webhook notifications for every state change.
 
 ## Licensing & Compliance
 
@@ -37,20 +42,20 @@ We perform KYC/AML screening, transaction monitoring, and regulatory reporting s
 - **HMAC-SHA256 Authentication** — Every request cryptographically signed
 - **Real-time Webhooks** — Instant notifications for deposits, withdrawals, and state changes
 - **Sandbox Environment** — Test end-to-end flows without real money
-- **Multi-currency Support** — Current public examples focus on AUD, EUR, GBP, USD, and USDT. Confirm any additional corridors directly against your enabled partner setup before launch.
+- **Multi-currency Support** — Current public examples focus on AUD, EUR, GBP, USD, and USDT. Confirm any additional corridors directly against your enabled account setup before launch.
 - **Global Compliance** — Licensed and registered across the jurisdictions listed below, with automated KYC/AML controls
 
 <CardGroup cols={2}>
-  <Card title="Onramp" icon="arrow-down-to-line" href="/guides/onramp-integration">
+  <Card title="Onramp" icon="arrow-down-to-line" href="/guides/onramp-flow">
     Accept fiat into customer virtual accounts and route funds into crypto settlement flows.
   </Card>
 
-  <Card title="Offramp" icon="arrow-up-from-line" href="/guides/offramp-integration">
+  <Card title="Offramp" icon="arrow-up-from-line" href="/guides/offramp-flow">
     Receive customer crypto and settle fiat to approved bank accounts.
   </Card>
 
-  <Card title="Virtual Accounts" icon="landmark" href="/virtual-accounts/virtual-accounts-guide">
-    Issue customer-level AUD, EUR, and GBP receiving accounts with PayID and whitelist support where available.
+  <Card title="Deposit Rails" icon="landmark" href="/virtual-accounts/virtual-accounts-guide">
+    Fiat virtual accounts and crypto deposit addresses for receiving customer funds.
   </Card>
 </CardGroup>
 
@@ -59,8 +64,8 @@ We perform KYC/AML screening, transaction monitoring, and regulatory reporting s
 - **Developers** integrating crypto-fiat rails into applications
 - **Product Managers** evaluating ramp providers
 - **QA Engineers** building test suites for payment flows
-- **Business Teams** exploring partnership opportunities
-- **Technical Partners** building on Coinut Partner Ramp infrastructure
+- **Business Teams** exploring ramp services
+- **Developers** building on Coinut Ramp infrastructure
 - **Web3 Developers** needing fiat Onramp and Offramp capabilities for Apps Testing
 
 ## Environments

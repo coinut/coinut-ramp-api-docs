@@ -1,0 +1,29 @@
+---
+title: "Deposit Addresses"
+description: "Coinut-issued crypto receiving addresses for offramp deposits."
+---
+
+A deposit address is a Coinut-generated receiving address — where a customer sends crypto to trigger an offramp. It's created automatically when you call [`POST /autoramp-flow/offramp`](/api-reference/autoramp-flow/create-an-offramp-flow-with-deposit-address) <Icon icon="link" size={14} /> (see [Autoramp Flows](/transactions/autoramp-flows)), or directly via [`POST /deposit-address/create`](/api-reference/deposit-address/create-a-deposit-address) <Icon icon="link" size={14} />.
+
+## Status
+
+Unlike crypto addresses (which are customer-owned and usable immediately), deposit addresses go through an **approval step** and carry a `status`:
+
+| Status | Meaning |
+| --- | --- |
+| `PENDING` | Just created — `address` is **not yet populated** |
+| `VERIFIED` | Approved — `address` is populated and safe to display |
+| `REJECTED` | Rejected — do not display, contact support |
+| `DELETED` | Removed |
+
+<Warning>
+  A newly created deposit address starts `PENDING` with `address: null`. It is **not** available synchronously — poll [`GET /deposit-address/detail`](/api-reference/deposit-address/get-deposit-address-detail) <Icon icon="link" size={14} /> or listen for the `DEPOSIT_ADDRESS_APPROVED` webhook, and only show the address to the customer once `status` leaves `PENDING` and `address` is populated.
+</Warning>
+
+Supported networks: `ETH` and `TRX` today. `MATIC` is accepted by the schema but not yet supported end-to-end — don't offer it to customers.
+
+## Related
+
+- [Virtual Accounts](/virtual-accounts/virtual-accounts-guide) — the fiat-side equivalent for onramp deposits
+- [Offramp Flow](/guides/offramp-flow) — full offramp flow
+- [Webhooks](/concepts/webhooks) — `DEPOSIT_ADDRESS_APPROVED` and `DEPOSIT_ADDRESS_REJECTED` events

@@ -1,0 +1,71 @@
+---
+title: "Overview"
+description: "Convert crypto balance into fiat and pay out to a bank account."
+---
+
+## Overview
+
+The Payment flow lets you convert cryptocurrency held in your Coinut account into fiat (USD) and send it to a bank account. Unlike Auto Ramp — where each customer gets their own deposit rail and conversion happens automatically — the Payment flow works against your own account balance: you send crypto to a Coinut deposit address, it becomes your balance, and you explicitly create a payment when you're ready to convert and pay out.
+
+Currently only **crypto → fiat** (USDT/USDC → USD) is supported.
+
+## Example Flow
+
+<Steps>
+  <Step title="Get a deposit address">
+    Call [`GET /deposit-address`](/api-reference/common/get-deposit-address) to obtain a Coinut deposit address for your account.
+  </Step>
+  <Step title="Send crypto">
+    Transfer USDT or USDC to the deposit address. The funds are credited as balance to your account.
+  </Step>
+  <Step title="Estimate the payment">
+    Call [`GET /payment/estimate`](/api-reference/payment/payment-estimate) to preview the conversion rate, deducted amount, and bank charges before committing.
+  </Step>
+  <Step title="Create the payment">
+    Call [`POST /payment/create`](/api-reference/payment/create-payment) to convert and send. The `deductAmount` is debited from your balance, and the recipient receives USD in their bank account.
+  </Step>
+  <Step title="Track the payment">
+    Monitor via [`GET /payment/detail`](/api-reference/payment/get-payment-detail) or [`GET /payment/list`](/api-reference/payment/get-payment-list), or subscribe to the `PAYMENT_SETTLED` webhook.
+  </Step>
+</Steps>
+
+## Prerequisites
+
+- A registered [bank account](/addresses/bank-accounts) for the recipient (must be USD)
+- Sufficient USDT or USDC balance in your Coinut account
+
+## Getting a Deposit Address
+
+Use [`GET /deposit-address`](/api-reference/common/get-deposit-address) from the Common API. The response contains a single `address` field — send your crypto to this address. See the API Reference for request parameters.
+
+<Note>
+  This is the Common module `GET /deposit-address` endpoint, **not** the [Deposit Addresses](/deposit-rails/deposit-addresses) API in Deposit Rails. The latter creates per-customer deposit addresses for offramp flows; this one gives you a deposit address for funding your own account balance.
+</Note>
+
+## Estimating a Payment
+
+Before creating a payment, call [`GET /payment/estimate`](/api-reference/payment/payment-estimate) to preview costs. The response includes the conversion rate, the total amount to be debited from your balance, bank processing fees, and the payee bank account details for confirmation. See the API Reference for the full request and response schema.
+
+## Creating a Payment
+
+Call [`POST /payment/create`](/api-reference/payment/create-payment) to execute the conversion and payout. See the API Reference for the full request schema.
+
+<Warning>
+  The bank account must be denominated in USD. Payments to non-USD bank accounts will be rejected.
+</Warning>
+
+## Payment Status
+
+| Status | Meaning |
+| --- | --- |
+| `PROCESSING` | Payment submitted, being processed |
+| `CONFIRMED` | Payment settled — funds sent to bank account |
+
+## Monitoring
+
+Subscribe to the `PAYMENT_SETTLED` webhook or poll [`GET /payment/detail`](/api-reference/payment/get-payment-detail) and [`GET /payment/list`](/api-reference/payment/get-payment-list). See [Webhooks](/concepts/webhooks) for setup.
+
+## Related
+
+- [Bank Accounts](/addresses/bank-accounts) — registering recipient bank accounts
+- [Webhooks](/concepts/webhooks) — subscribing to `PAYMENT_SETTLED`

@@ -1,18 +1,18 @@
 ---
 title: "Integration Journey"
-description: "The end-to-end partner journey: customer, address, autoramp flow, and settlement."
+description: "The end-to-end onramp journey: customer, deposit rail, destination, and settlement."
 ---
 
-This page walks through the full onramp journey end to end, at a glance — from creating a customer to confirming on-chain settlement. Each step links to the page with full details, request/response fields, and edge cases. Offramp follows the mirror sequence — see [Offramp Integration](/guides/offramp-integration).
+This page walks through the full onramp journey end to end, at a glance — from creating a customer to confirming on-chain settlement. Each step links to the page with full details. Offramp follows the mirror sequence — see [Offramp Flow](/guides/offramp-flow).
 
-The journey breaks into three phases: **customer onboarding**, **wallet & virtual account management**, and **monitoring & settlement**.
+The journey breaks into three phases: **customer onboarding**, **destinations & deposit rails**, and **monitoring & settlement**.
 
 ## Phase 1: Customer Onboarding
 
 <Steps>
   <Step title="Create Customer" icon="user-plus">
     <Card>
-      Call [`POST /customer/create`](/api-reference/customer/create-a-new-customer) with name, email, `type="DEPOSITOR"`, and `isIndividual=true`.
+      Call [`POST /customer/create`](/api-reference/customer/create-a-new-customer) with the customer's name, email, and `externalId`.
 
       ```json
       {
@@ -36,14 +36,12 @@ The journey breaks into three phases: **customer onboarding**, **wallet & virtua
   </Step>
 </Steps>
 
-## Phase 2: Wallet & Virtual Account Management
+## Phase 2: Destinations & Deposit Rails
 
 <Steps>
   <Step title="Add Crypto Address" icon="wallet">
     <Card>
-      Call [`POST /crypto-address/add`](/api-reference/crypto-address/add-customers-crypto-address) with `customerId`, `currency` (`USDT` or `USDC`), `address`, `label`, and optionally `network` (`ETH`, `TRX`, or `MATIC`).
-
-      Store the returned `id` — you'll need it for the autoramp flow. See [Crypto Addresses](/addresses/crypto-addresses).
+      Call [`POST /crypto-address/add`](/api-reference/crypto-address/add-customers-crypto-address) to register the customer's wallet as the onramp destination. Store the returned `id` — you'll need it for the onramp flow. See [Crypto Addresses](/addresses/crypto-addresses).
     </Card>
   </Step>
   <Step title="Create Onramp Flow" icon="arrows-rotate">
@@ -60,19 +58,19 @@ The journey breaks into three phases: **customer onboarding**, **wallet & virtua
       }
       ```
 
-      This creates a virtual account automatically and links its deposits to automatic crypto conversion. The response only contains the new flow's `id` — see [Autoramp Flows](/transactions/autoramp-flows).
+      This creates a virtual account automatically and links its deposits to automatic crypto conversion. The response only contains the new flow's `id`. See [Onramp Flow](/guides/onramp-flow) for full details.
     </Card>
   </Step>
   <Step title="Display Virtual Account to Customer" icon="building-columns">
     <Card>
-      The flow response doesn't include the virtual account's banking details directly — fetch [`GET /autoramp-flow/detail`](/api-reference/autoramp-flow/get-autoramp-flow-detail) and read them from `fromVirtualAccount`. There's a single `bicSwift` field for every currency — it carries the BSB number for AUD and the SWIFT/BIC code for everything else. There's no separate "sort code" field.
+      Fetch [`GET /autoramp-flow/detail`](/api-reference/autoramp-flow/get-autoramp-flow-detail) and read the virtual account's banking details from `fromVirtualAccount`:
 
-      | Currency | Display |
+      | Currency | Key Fields |
       | --- | --- |
       | AUD | `payId`, `bicSwift` (BSB), `accountNumber` |
       | EUR / GBP / SGD / USD | `iban`, `bicSwift` (SWIFT/BIC) |
 
-      See [Virtual Accounts](/virtual-accounts/virtual-accounts-guide) and [QR Code Payments](/guides/qr-code-payments) for generating a scannable PayID QR.
+      See [Virtual Accounts](/virtual-accounts/virtual-accounts-guide) for the full field reference.
     </Card>
   </Step>
 </Steps>
@@ -82,12 +80,12 @@ The journey breaks into three phases: **customer onboarding**, **wallet & virtua
 <Steps>
   <Step title="Monitor Deposits" icon="arrow-down-to-line">
     <Card>
-      Listen for `DEPOSIT_RECEIVED` (funds detected) and `DEPOSIT_APPROVED` (funds cleared), or poll [`GET /deposit/list`](/api-reference/deposit/list-partner-deposits) with the customer ID. See [Deposits](/transactions/deposits).
+      Listen for `DEPOSIT_RECEIVED` (funds detected) and `DEPOSIT_APPROVED` (funds cleared), or poll deposits with the customer ID. See [Deposits](/transactions/deposits).
     </Card>
   </Step>
   <Step title="Track Trade" icon="chart-line">
     <Card>
-      After deposit approval, listen for `TRADE_CREATED` (trade initiated) and `TRADE_SETTLED` (trade complete, crypto sent), or poll [`GET /trade/list`](/api-reference/trade/list-otc-trades). See [Trades](/transactions/trades).
+      After deposit approval, listen for `TRADE_CREATED` (trade initiated) and `TRADE_SETTLED` (trade complete, crypto sent). See [Trades](/transactions/trades).
     </Card>
   </Step>
   <Step title="Confirm Settlement" icon="circle-check">
@@ -99,7 +97,7 @@ The journey breaks into three phases: **customer onboarding**, **wallet & virtua
       | ERC-20 | `https://etherscan.io/tx/{withdrawal.txId}` |
       | TRC-20 | `https://tronscan.org/#/transaction/{withdrawal.txId}` |
 
-      `withdrawal` may be absent on the first delivery of `TRADE_SETTLED` if the broadcast hasn't completed yet — treat it as optional. There is no top-level `txHash` field. See [Trades](/transactions/trades).
+      `withdrawal` may be absent on the first delivery of `TRADE_SETTLED` if the broadcast hasn't completed yet — treat it as optional. See [Trades](/transactions/trades).
     </Card>
   </Step>
 </Steps>
@@ -107,11 +105,11 @@ The journey breaks into three phases: **customer onboarding**, **wallet & virtua
 ## Related
 
 <CardGroup cols={3}>
-  <Card title="Onramp Integration" icon="arrow-down-to-line" href="/guides/onramp-integration">
-    Implementation detail for the flow-creation call
+  <Card title="Onramp Flow" icon="arrow-down-to-line" href="/guides/onramp-flow">
+    Convert fiat into crypto via a virtual account
   </Card>
-  <Card title="Offramp Integration" icon="arrow-up-from-line" href="/guides/offramp-integration">
-    The mirror journey for crypto-to-fiat
+  <Card title="Offramp Flow" icon="arrow-up-from-line" href="/guides/offramp-flow">
+    Convert crypto into fiat via a deposit address
   </Card>
   <Card title="Webhooks" icon="webhook" href="/concepts/webhooks">
     Subscribe instead of polling at every step above

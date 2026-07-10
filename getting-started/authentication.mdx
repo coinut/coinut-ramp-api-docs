@@ -1,11 +1,11 @@
 ---
 title: "Authentication"
-description: "How to authenticate with Coinut Partner Ramp APIs using HMAC-SHA256 request signing."
+description: "How to authenticate with Coinut Ramp APIs using HMAC-SHA256 request signing."
 ---
 
 ## Overview
 
-Every request to the Coinut Partner Ramp API must be cryptographically signed using **HMAC-SHA256**. The server verifies the signature against your **API Secret** stored on the Coinut side. Requests with a missing, malformed, or invalid signature (or an unrecognized API key) are rejected with `401 Unauthorized`.
+Every request to the Coinut Ramp API must be cryptographically signed using **HMAC-SHA256**. The server verifies the signature against your **API Secret** stored on the Coinut side. Requests with a missing, malformed, or invalid signature (or an unrecognized API key) are rejected with `401 Unauthorized`.
 
 ## Required Headers
 
@@ -290,15 +290,7 @@ curl https://ramp-sandbox.hexarails.ai/balance \
   -H "X-Signature: a3f7c9...e2d1b8"
 ```
 
-### Response (New API — 200 OK)
-
-<ResponseField name="status" type="string">
-  Always `SUCCESS` for successful requests.
-</ResponseField>
-
-<ResponseField name="data" type="array">
-  List of balance objects, one per currency.
-</ResponseField>
+### Response
 
 ```json
 {

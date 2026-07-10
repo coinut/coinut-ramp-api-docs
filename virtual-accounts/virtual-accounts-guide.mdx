@@ -35,21 +35,7 @@ A VA starts in `PENDING` status after creation. Once compliance review completes
 
 ## Creating VAs
 
-<ParamField body="customerId" type="string" required>
-  The customer ID returned from [`POST /customer/create`](/api-reference/customer/create-a-new-customer) <Icon icon="link" size={14} />
-</ParamField>
-
-<ParamField body="currency" type="string" required>
-  The fiat currency for the requested virtual account. Current OpenAPI enum: `AUD`, `EUR`, `GBP`, `SGD`, `USD`.
-</ParamField>
-
-<ParamField body="whitelist" type="object">
-  Intended for AUD only — pre-registers one allowed sender bank account during VA creation. Uses `bsbNumber`, `accountNumber`, and `accountName` (despite being marked optional in the schema, `accountName` is currently required by validation; omitting it will fail the request). Note: unlike the dedicated whitelist endpoints below, VA creation does not currently reject a `whitelist` object submitted for a non-AUD currency — stick to AUD until that's tightened up.
-</ParamField>
-
-```bash
-POST /virtual-account/create
-```
+Call [`POST /virtual-account/create`](/api-reference/virtual-account/create-a-fiat-virtual-account) <Icon icon="link" size={14} />. See the API Reference for the full request schema.
 
 ```json
 {
@@ -64,24 +50,7 @@ POST /virtual-account/create
 ```
 
 <Note>
-  [`POST /virtual-account/create`](/api-reference/virtual-account/create-a-fiat-virtual-account) <Icon icon="link" size={14} /> itself only returns the new VA's `id`. The fields below come from [`GET /virtual-account/detail`](/api-reference/virtual-account/get-fiat-va-detail) <Icon icon="link" size={14} />, which you should call immediately after creation to get the banking details.
-</Note>
-
-<ResponseField name="payId" type="string">
-  PayID address for AUD accounts (e.g., `john.doe@example.com`)
-</ResponseField>
-
-<ResponseField name="bicSwift" type="string">
-  BSB code for AUD accounts (e.g., `062000`), or the SWIFT/BIC code for EUR, GBP, SGD, and USD accounts. This is a single field — there's no separate `bsb` or `swift` field.
-</ResponseField>
-
-<ResponseField name="accountNumber" type="string">
-  Account number for AUD accounts
-</ResponseField>
-
-<ResponseField name="iban" type="string">
-  IBAN for EUR, GBP, SGD, and USD accounts
-</ResponseField>
+  [`POST /virtual-account/create`](/api-reference/virtual-account/create-a-fiat-virtual-account) <Icon icon="link" size={14} /> itself only returns the new VA's `id`. Immediately call [`GET /virtual-account/detail`](/api-reference/virtual-account/get-fiat-va-detail) <Icon icon="link" size={14} /> to get the full banking details — see the API Reference for the response schema.
 
 ## AUD Virtual Accounts & PayID
 

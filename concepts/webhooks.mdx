@@ -10,10 +10,10 @@ Coinut sends webhook events to your registered callback URL when important event
 All webhooks:
 
 - Use the `POST` method
-- Send a JSON body using the `{event, payload}` envelope shown in [Webhook Payload Examples](/concepts/webhooks-payload-examples)
+- Send a JSON body using the `{event, payload}` envelope
 - Are only sent for event types you've subscribed to, and only once you have a callback URL configured (see [Setting Up Webhooks](#setting-up-webhooks))
 - Are signed with the same HMAC-SHA256 scheme used for incoming requests (see [Webhook Signature Verification](/concepts/webhooks-signature-verification))
-- Accept any `2xx` response as a successful delivery — respond as soon as you've durably queued the event, since no delivery timeout is currently enforced (see [Delivery & Reliability](#delivery-reliability))
+- Accept any `2xx` response as a successful delivery — respond as soon as you've durably queued the event
 
 ## Setting Up Webhooks
 
@@ -41,62 +41,37 @@ All webhooks:
     ```
 
     <Note>
-      Both steps are required — an event is only queued for delivery if you have a callback URL **and** that event type appears in your subscribed events. Missing either one means the event is silently skipped rather than retried later.
+      Both steps are required — an event is only queued for delivery if you have a callback URL **and** that event type appears in your subscribed events. Missing either one means the event is silently skipped.
     </Note>
   </Step>
   <Step title="Verify signature">
     Every webhook is signed exactly like an incoming API request (see [Authentication](/getting-started/authentication)): the same four headers (`X-API-Key`, `X-Timestamp`, `X-Nonce`, `X-Signature`) are sent with the callback, built from the same HMAC-SHA256 canonical string. Verify it before trusting the payload — see [Webhook Signature Verification](/concepts/webhooks-signature-verification) for the exact construction.
   </Step>
   <Step title="Acknowledge receipt">
-    Return any `2xx` status as soon as you've durably stored or queued the event. There is currently no server-side delivery timeout, but you should still respond quickly and process asynchronously — a slow handler ties up a delivery worker rather than protecting you from anything. Failed deliveries are retried up to 5 times with increasing backoff (10 minutes, 1 hour, 1 day, 1 week), so your handler must be idempotent and safe to receive duplicate deliveries — see [Delivery & Reliability](#delivery-reliability).
+    Return any `2xx` status as soon as you've durably stored or queued the event. Process asynchronously — failed deliveries are retried automatically (see [Retries](/concepts/webhooks-retries)), so your handler must be idempotent.
   </Step>
 </Steps>
 
 ## Event Types
 
-| Event | Description | Payload Type |
-| --- | --- | --- |
-| `CUSTOMER_APPROVED` | Customer KYC approved | `GetCustomerDataDto` |
-| `CUSTOMER_REJECTED` | Customer KYC rejected | `GetCustomerDataDto` |
-| `CUSTOMER_DELETED` | Customer deleted | `GetCustomerDataDto` |
-| `VIRTUAL_ACCOUNT_APPROVED` | VA created and verified | `VirtualAccountDetailDto` |
-| `VIRTUAL_ACCOUNT_REJECTED` | VA creation rejected | `VirtualAccountDetailDto` |
-| `DEPOSIT_ADDRESS_APPROVED` | Deposit address verified | `DepositAddressDetailDto` |
-| `DEPOSIT_ADDRESS_REJECTED` | Deposit address rejected | `DepositAddressDetailDto` |
-| `DEPOSIT_RECEIVED` | Deposit detected | `PartnerDepositDetailDataDto` |
-| `DEPOSIT_APPROVED` | Deposit confirmed | `PartnerDepositDetailDataDto` |
-| `DEPOSIT_REJECTED` | Deposit rejected/refunded | `PartnerDepositDetailDataDto` |
-| `TRADE_CREATED` | Trade initiated | `TradeDetailDataDto` |
-| `TRADE_SETTLED` | Trade completed | `TradeDetailDataDto` |
-| `PAYMENT_SETTLED` | Payment completed | `GetPaymentDetailDataDto` |
+Available event types are fully documented in the `WebhookEvent` schema in the [API Reference](/api-reference) — including every valid `event` enum value and the payload schema for each type. The following domains are covered:
 
-Each event type is also documented in the `WebhookEvent` schema in the [OpenAPI spec](/api-overview) (`components.schemas.WebhookEvent`), which lists every valid `event` enum value alongside the deprecated legacy names. See [Webhook Payload Examples](/concepts/webhooks-payload-examples) for a full example payload of every event above.
-
-## Delivery & Reliability
-
-| Property | Value |
+| Domain | Events |
 | --- | --- |
-| Method | `POST` |
-| Protocol | HTTPS strongly recommended. Note: the callback-URL field is not currently restricted to `https://` by validation, so a plain HTTP URL will be accepted — use HTTPS regardless, since payloads include customer and transaction data. |
-| Timeout | Not enforced by the sender today — the delivery attempt will wait indefinitely for your response. Respond promptly anyway; don't rely on this. |
-| Scheduler | Callback delivery (including retries) is processed by a scheduler that runs every 1 minute — expect up to ~1 minute of added latency on top of any scheduled retry delay. |
-| Retries | Up to 4 retries after the initial attempt (5 total delivery attempts per event occurrence) |
-| Retry triggers | A retry is queued when either the callback payload fails to build, or the HTTP delivery itself fails |
-| Backoff | 10 minutes → 1 hour → 1 day → 1 week after each failed attempt |
-| Success criteria | Any `2xx` response |
-| Deduplication | Keyed on partner + event type + source record ID (surfaced to you as `payload.id`) |
-
-<Note>
-  Deduplication is scoped per partner, so it only suppresses repeat deliveries of the *same* underlying occurrence to *you*. If all 5 attempts for an occurrence are exhausted without a `2xx`, the event **remains failed** — no further automatic retries are performed. If the same underlying event fires again upstream (e.g. a corrected retry), a new delivery cycle starts for it — so `event` + `payload.id` alone isn't a lifetime guarantee against redelivery beyond the 5-attempt window. Keep your handler idempotent regardless.
-</Note>
+| Customer | `CUSTOMER_APPROVED`, `CUSTOMER_REJECTED`, `CUSTOMER_DELETED` |
+| Virtual Account | `VIRTUAL_ACCOUNT_APPROVED`, `VIRTUAL_ACCOUNT_REJECTED` |
+| Deposit Address | `DEPOSIT_ADDRESS_APPROVED`, `DEPOSIT_ADDRESS_REJECTED` |
+| Deposit | `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `DEPOSIT_REJECTED` |
+| Trade | `TRADE_CREATED`, `TRADE_SETTLED` |
+| Payment | `PAYMENT_SETTLED` |
 
 ## Best Practices
 
-- **Always verify signatures.** Validate every delivery against the [Webhook Signature Verification](/concepts/webhooks-signature-verification) scheme before processing the payload — don't rely on network-level trust (e.g. IP allowlisting) alone.
-- **Handle idempotently.** See [Deduplication](#delivery-reliability) — dedup is best-effort, not a lifetime guarantee, so your handler must tolerate duplicate deliveries safely.
-- **Respond quickly, process asynchronously.** No delivery timeout is enforced today, but don't depend on that — acknowledge with a `2xx` as soon as the event is durably queued.
+- **Always verify signatures.** Validate every delivery against the [Webhook Signature Verification](/concepts/webhooks-signature-verification) scheme before processing the payload.
+- **Handle idempotently.** See [Retries](/concepts/webhooks-retries) — your handler must tolerate duplicate deliveries safely.
+- **Respond quickly, process asynchronously.** Acknowledge with a `2xx` as soon as the event is durably queued.
 - **Log everything.** Store raw payloads and headers for debugging.
-- **Expect retries.** The same event occurrence can be redelivered up to 5 times over the course of a week if your endpoint doesn't return `2xx`.
+- **Expect retries.** The same event occurrence can be redelivered up to 5 times — see [Retries](/concepts/webhooks-retries).
 
 ## Testing Webhooks Locally
 
