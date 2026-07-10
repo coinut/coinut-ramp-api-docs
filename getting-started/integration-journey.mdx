@@ -12,7 +12,7 @@ The journey breaks into three phases: **customer onboarding**, **wallet & virtua
 <Steps>
   <Step title="Create Customer" icon="user-plus">
     <Card>
-      Call [`POST /customer/create`](/api-reference/customer-create) with name, email, `type="DEPOSITOR"`, and `isIndividual=true`.
+      Call [`POST /customer/create`](/api-reference/customer/create-a-new-customer) with name, email, `type="DEPOSITOR"`, and `isIndividual=true`.
 
       ```json
       {
@@ -29,7 +29,7 @@ The journey breaks into three phases: **customer onboarding**, **wallet & virtua
   </Step>
   <Step title="Wait for KYC Approval" icon="shield-check">
     <Card>
-      Listen for the `CUSTOMER_APPROVED` webhook event. You can also poll [`GET /customer/detail`](/api-reference/customer-detail) to check status.
+      Listen for the `CUSTOMER_APPROVED` webhook event. You can also poll [`GET /customer/detail`](/api-reference/customer/get-customer-details) to check status.
 
       Customer status transitions: `PENDING` → `CONFIRMED` | `REJECTED` (a customer can also end up `DELETED`). See [Customer Lifecycle](/customers/customer-lifecycle).
     </Card>
@@ -41,14 +41,14 @@ The journey breaks into three phases: **customer onboarding**, **wallet & virtua
 <Steps>
   <Step title="Add Crypto Address" icon="wallet">
     <Card>
-      Call [`POST /crypto-address/add`](/api-reference/crypto-address-add) with `customerId`, `currency` (`USDT` or `USDC`), `address`, `label`, and optionally `network` (`ETH`, `TRX`, or `MATIC`).
+      Call [`POST /crypto-address/add`](/api-reference/crypto-address/add-customers-crypto-address) with `customerId`, `currency` (`USDT` or `USDC`), `address`, `label`, and optionally `network` (`ETH`, `TRX`, or `MATIC`).
 
       Store the returned `id` — you'll need it for the autoramp flow. See [Crypto Addresses](/addresses/crypto-addresses).
     </Card>
   </Step>
   <Step title="Create Onramp Flow" icon="arrows-rotate">
     <Card>
-      Call [`POST /autoramp-flow/onramp`](/api-reference/autoramp-onramp) with the fiat source and crypto destination:
+      Call [`POST /autoramp-flow/onramp`](/api-reference/autoramp-flow/create-an-onramp-flow-with-virtual-account) with the fiat source and crypto destination:
 
       ```json
       {
@@ -65,7 +65,7 @@ The journey breaks into three phases: **customer onboarding**, **wallet & virtua
   </Step>
   <Step title="Display Virtual Account to Customer" icon="building-columns">
     <Card>
-      The flow response doesn't include the virtual account's banking details directly — fetch [`GET /autoramp-flow/detail`](/api-reference/autoramp-detail) and read them from `fromVirtualAccount`. There's a single `bicSwift` field for every currency — it carries the BSB number for AUD and the SWIFT/BIC code for everything else. There's no separate "sort code" field.
+      The flow response doesn't include the virtual account's banking details directly — fetch [`GET /autoramp-flow/detail`](/api-reference/autoramp-flow/get-autoramp-flow-detail) and read them from `fromVirtualAccount`. There's a single `bicSwift` field for every currency — it carries the BSB number for AUD and the SWIFT/BIC code for everything else. There's no separate "sort code" field.
 
       | Currency | Display |
       | --- | --- |
@@ -82,12 +82,12 @@ The journey breaks into three phases: **customer onboarding**, **wallet & virtua
 <Steps>
   <Step title="Monitor Deposits" icon="arrow-down-to-line">
     <Card>
-      Listen for `DEPOSIT_RECEIVED` (funds detected) and `DEPOSIT_APPROVED` (funds cleared), or poll [`GET /deposit/list`](/api-reference/deposit-list) with the customer ID. See [Deposits](/transactions/deposits).
+      Listen for `DEPOSIT_RECEIVED` (funds detected) and `DEPOSIT_APPROVED` (funds cleared), or poll [`GET /deposit/list`](/api-reference/deposit/list-partner-deposits) with the customer ID. See [Deposits](/transactions/deposits).
     </Card>
   </Step>
   <Step title="Track Trade" icon="chart-line">
     <Card>
-      After deposit approval, listen for `TRADE_CREATED` (trade initiated) and `TRADE_SETTLED` (trade complete, crypto sent), or poll [`GET /trade/list`](/api-reference/trade-list). See [Trades](/transactions/trades).
+      After deposit approval, listen for `TRADE_CREATED` (trade initiated) and `TRADE_SETTLED` (trade complete, crypto sent), or poll [`GET /trade/list`](/api-reference/trade/list-otc-trades). See [Trades](/transactions/trades).
     </Card>
   </Step>
   <Step title="Confirm Settlement" icon="circle-check">

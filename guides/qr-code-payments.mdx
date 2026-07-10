@@ -28,7 +28,7 @@ Generate scannable QR codes for two distinct payment types: **PayID** (AUD virtu
 
 <Steps>
   <Step title="Prerequisite: get a payId">
-    Create a virtual account via [Virtual Accounts](/virtual-accounts/virtual-accounts-guide). The create response only returns the new VA's `id` — immediately call [`GET /virtual-account/detail`](/api-reference/virtual-account-detail) <Icon icon="link" size={14} /> to read `payId`.
+    Create a virtual account via [Virtual Accounts](/virtual-accounts/virtual-accounts-guide). The create response only returns the new VA's `id` — immediately call [`GET /virtual-account/detail`](/api-reference/virtual-account/get-fiat-va-detail) <Icon icon="link" size={14} /> to read `payId`.
   </Step>
   <Step title="Encode the format">
     PayID QR codes follow the format `payid:{payIdAddress}` — e.g. `payid:john.doe@example.com`. When scanned with an Australian banking app, the PayID field is auto-populated and the customer only needs to enter the amount and confirm.
