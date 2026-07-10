@@ -11,19 +11,30 @@ Call [`POST /bank-account/add`](/api-reference/bank-account/add-customers-bank-a
 
 ```json
 {
-  "customerId": "6ac34182-aa2e-4290-ab1b-302a09f451d1",
-  "currency": "EUR",
-  "bankName": "Deutsche Bank",
-  "accountNo": "1234567890",
-  "iban": "DE89370400440532013000",
-  "swift": "DEUTDEFF",
-  "beneficiaryName": "John Doe"
+  --form customerId=6ac34182-aa2e-4290-ab1b-302a09f451d1 \
+  --form currency=USD \
+  --form 'bankName=Chase Bank' \
+  --form accountNo=1234567890 \
+  --form swift=CHASUS33 \
+  --form bankCountry=USA \
+  --form 'bankAddress=270 Park Ave, New York, NY 10017' \
+  --form aba=021000021 \
+  --form iban=GB33BUKB20201555555555 \
+  --form 'beneficiaryName=John Doe' \
+  --form 'beneficiaryAddress=1 Infinite Loop, Cupertino, CA 95014' \
+  --form 'interBankName=Citibank N.A.' \
+  --form interBankBic=CITIUS33 \
+  --form interBankAccountNo=9876543210 \
+  --form institutionNumber=001 \
+  --form transit=00011 \
+  --form 'label=Main USD settlement account' \
+  --form statementFile='@example-file'
 }
 ```
 
 The API only strictly requires `customerId`, `currency`, and `bankName` — it does not enforce currency-specific combinations of the remaining fields at the schema level. Still, supply the fields your customer's currency needs below; payouts can be delayed or fail at the banking layer if the receiving bank needs a field the schema didn't require you to send.
 
-`currency` accepts only `GBP`, `EUR`, `AUD`, `SGD`, or `USD` — any other value, including `CAD`, is rejected.
+`currency` accepts only `GBP`, `EUR`, `AUD`, `SGD`, or `USD` — any other value is rejected.
 
 | Currency | Recommended Fields | Optional Fields | Typical Settlement |
 | --- | --- | --- | --- |
@@ -33,9 +44,12 @@ The API only strictly requires `customerId`, `currency`, and `bankName` — it d
 | AUD | `bankName`, `accountNo` | `beneficiaryName` | 1 business day |
 | SGD | `bankName`, `accountNo`, `swift` | `beneficiaryName`, `bankAddress` | 1 business day |
 
+{/*
 <Note>
   There is no `sortCode`, `bsb`, or `accountName` field on this endpoint — the field for the account holder's name is `beneficiaryName`. If your AUD payout needs a BSB captured explicitly, check with Coinut support on current formatting expectations before going live.
 </Note>
+*/}
+
 
 ### Additional fields
 
@@ -43,9 +57,11 @@ For intermediary-bank routing or region-specific rails, the endpoint also accept
 
 Store the returned `id` — it's the value you pass as `to` when creating an offramp flow (see [Autoramp Flows](/transactions/autoramp-flows)).
 
+{/*
 <Note>
   Banking cutoff times vary by currency and institution. EUR SEPA transfers typically process until 3:00 PM CET; USD ACH transfers have a 5:00 PM ET cutoff. Communicate these timelines to your customers.
 </Note>
+*/}
 
 ## Related
 
