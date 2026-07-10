@@ -3268,12 +3268,8 @@
     "tags": [],
     "servers": [
         {
-            "url": "https://ramp-sandbox.hexarails.ai",
+            "url": "https://partner-sandbox.coinut.net",
             "description": "Sandbox"
-        },
-        {
-            "url": "https://ramp.hexarails.ai",
-            "description": "Production"
         }
     ],
     "components": {
