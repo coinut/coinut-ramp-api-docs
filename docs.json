@@ -112,110 +112,110 @@
           {
             "group": "Common",
             "pages": [
-              "api/common-deposit-address",
-              "api/common-basic-info",
-              "api/common-health",
-              "api/common-callback-url-get",
-              "api/common-callback-url-update",
-              "api/common-subscribed-events-get",
-              "api/common-subscribed-events-update",
-              "api/common-ip-whitelist-get",
-              "api/common-ip-whitelist-update",
-              "api/common-balance"
+              "api-reference/common-deposit-address",
+              "api-reference/common-basic-info",
+              "api-reference/common-health",
+              "api-reference/common-callback-url-get",
+              "api-reference/common-callback-url-update",
+              "api-reference/common-subscribed-events-get",
+              "api-reference/common-subscribed-events-update",
+              "api-reference/common-ip-whitelist-get",
+              "api-reference/common-ip-whitelist-update",
+              "api-reference/common-balance"
             ]
           },
           {
             "group": "Customers",
             "pages": [
-              "api/customer-create",
-              "api/customer-create-with-files",
-              "api/customer-detail",
-              "api/customer-list"
+              "api-reference/customer-create",
+              "api-reference/customer-create-with-files",
+              "api-reference/customer-detail",
+              "api-reference/customer-list"
             ]
           },
           {
             "group": "Virtual Accounts",
             "pages": [
-              "api/virtual-account-create",
-              "api/virtual-account-list",
-              "api/virtual-account-detail",
-              "api/virtual-account-create-whitelist",
-              "api/virtual-account-update-whitelist",
-              "api/virtual-account-get-whitelist"
+              "api-reference/virtual-account-create",
+              "api-reference/virtual-account-list",
+              "api-reference/virtual-account-detail",
+              "api-reference/virtual-account-create-whitelist",
+              "api-reference/virtual-account-update-whitelist",
+              "api-reference/virtual-account-get-whitelist"
             ]
           },
           {
             "group": "Crypto Addresses",
             "pages": [
-              "api/crypto-address-add",
-              "api/crypto-address-list",
-              "api/crypto-address-detail"
+              "api-reference/crypto-address-add",
+              "api-reference/crypto-address-list",
+              "api-reference/crypto-address-detail"
             ]
           },
           {
             "group": "Deposit Addresses",
             "pages": [
-              "api/deposit-address-create",
-              "api/deposit-address-list",
-              "api/deposit-address-detail"
+              "api-reference/deposit-address-create",
+              "api-reference/deposit-address-list",
+              "api-reference/deposit-address-detail"
             ]
           },
           {
             "group": "Bank Accounts",
             "pages": [
-              "api/bank-account-add",
-              "api/bank-account-list",
-              "api/bank-account-detail"
+              "api-reference/bank-account-add",
+              "api-reference/bank-account-list",
+              "api-reference/bank-account-detail"
             ]
           },
           {
             "group": "Autoramp",
             "pages": [
-              "api/autoramp-create",
-              "api/autoramp-onramp",
-              "api/autoramp-offramp",
-              "api/autoramp-list",
-              "api/autoramp-detail",
-              "api/autoramp-trade-preview",
-              "api/autoramp-delete"
+              "api-reference/autoramp-create",
+              "api-reference/autoramp-onramp",
+              "api-reference/autoramp-offramp",
+              "api-reference/autoramp-list",
+              "api-reference/autoramp-detail",
+              "api-reference/autoramp-trade-preview",
+              "api-reference/autoramp-delete"
             ]
           },
           {
             "group": "Deposits",
             "pages": [
-              "api/deposit-list",
-              "api/deposit-detail",
-              "api/deposit-submit-attachment",
-              "api/deposit-mock"
+              "api-reference/deposit-list",
+              "api-reference/deposit-detail",
+              "api-reference/deposit-submit-attachment",
+              "api-reference/deposit-mock"
             ]
           },
           {
             "group": "Trades",
             "pages": [
-              "api/trade-list",
-              "api/trade-detail"
+              "api-reference/trade-list",
+              "api-reference/trade-detail"
             ]
           },
           {
             "group": "Payments",
             "pages": [
-              "api/payment-estimate",
-              "api/payment-create",
-              "api/payment-detail",
-              "api/payment-list"
+              "api-reference/payment-estimate",
+              "api-reference/payment-create",
+              "api-reference/payment-detail",
+              "api-reference/payment-list"
             ]
           },
           {
             "group": "Legacy",
             "pages": [
-              "api/legacy-deposit-list",
-              "api/legacy-deposit-detail",
-              "api/old-create-user",
-              "api/old-get-user",
-              "api/old-create-va",
-              "api/old-create-whitelist",
-              "api/old-update-whitelist",
-              "api/old-get-whitelist"
+              "api-reference/legacy-deposit-list",
+              "api-reference/legacy-deposit-detail",
+              "api-reference/old-create-user",
+              "api-reference/old-get-user",
+              "api-reference/old-create-va",
+              "api-reference/old-create-whitelist",
+              "api-reference/old-update-whitelist",
+              "api-reference/old-get-whitelist"
             ]
           }
         ]
