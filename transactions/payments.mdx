@@ -3,4 +3,32 @@ title: "Payments"
 description: "Direct fiat payment lifecycle."
 ---
 
-Content coming soon.
+## Overview
+
+Payments enable partners to send fiat payouts (offramp) to their customers' bank
+accounts. The Coinut partner platform currently supports **USD payouts**, where
+you pay with USDT or USDC and the recipient receives USD in their bank account.
+
+## Payment Flow
+
+1. **Estimate** — Call `GET /payment/estimate` to preview the exchange rate,
+   deducted amount, bank charges, and target bank account details before
+   committing.
+
+2. **Create** — Call `POST /payment/create` to initiate the payment. You specify
+   the deduct currency (USDT / USDC), the fiat amount, the target bank account,
+   and a reference. Optionally attach a supporting document.
+
+3. **Track** — Poll `GET /payment/detail` or `GET /payment/list` to monitor the
+   payment. When settled, a `PAYMENT_SETTLED` webhook is fired.
+
+## Supported Currencies
+
+| Direction | Currency |
+|---|---|
+| **Pay with** | `USDT`, `USDC` |
+| **Receive** | `USD` |
+
+## API Reference
+
+For full request / response schemas use the API Reference tab.
