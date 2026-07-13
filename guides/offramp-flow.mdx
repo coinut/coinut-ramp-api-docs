@@ -41,7 +41,7 @@ Every step must complete before moving to the next.
     The customer must have completed KYC. See [Customer Lifecycle](/customers/customer-lifecycle).
   </Step>
   <Step title="Register the bank account">
-    Register the destination bank account via [Bank Accounts](/addresses/bank-accounts). You need its `id` before creating the flow.
+    Register the destination bank account via [Bank Accounts](/destinations/bank-accounts). You need its `id` before creating the flow.
   </Step>
   <Step title="(Optional) Preview the rate">
     Call [`GET /autoramp-flow/trade-preview`](/api-reference/autoramp-flow/trade-preview) <Icon icon="link" size={14} /> with `fromCurrency`, `toCurrency`, and `amount` for an indicative rate. This is a live estimate, not a locked quote — the flow always executes at the rate current when the deposit clears.
@@ -80,7 +80,7 @@ The response only contains the new flow's `id` — not the deposit address. Fetc
 
 ## Monitor via Webhooks
 
-Subscribe to `DEPOSIT_ADDRESS_APPROVED`, `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_CREATED`, and `TRADE_SETTLED` rather than polling. See [Webhooks](/concepts/webhooks).
+Subscribe to `DEPOSIT_ADDRESS_APPROVED`, `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_CREATED`, and `TRADE_SETTLED` rather than polling. See [Webhooks](/webhooks/overview).
 
 <Note>
   `TRADE_SETTLED` confirms the crypto-to-fiat trade executed — it does **not** confirm the bank transfer landed. There is no separate webhook for offramp bank-transfer completion; reconcile actual bank arrival through your own banking feed. See [Trades](/transactions/trades).
@@ -89,5 +89,5 @@ Subscribe to `DEPOSIT_ADDRESS_APPROVED`, `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`,
 ## Related
 
 - [Customer Lifecycle](/customers/customer-lifecycle)
-- [Bank Accounts](/addresses/bank-accounts) · [Deposit Addresses](/deposit-rails/deposit-addresses)
+- [Bank Accounts](/destinations/bank-accounts) · [Deposit Addresses](/deposit-rails/deposit-addresses)
 - [Deposits](/transactions/deposits) · [Trades](/transactions/trades)

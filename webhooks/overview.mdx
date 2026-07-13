@@ -12,7 +12,7 @@ All webhooks:
 - Use the `POST` method
 - Send a JSON body using the `{event, payload}` envelope
 - Are only sent for event types you've subscribed to, and only once you have a callback URL configured (see [Setting Up Webhooks](#setting-up-webhooks))
-- Are signed with the same HMAC-SHA256 scheme used for incoming requests (see [Webhook Signature Verification](/concepts/webhooks-signature-verification))
+- Are signed with the same HMAC-SHA256 scheme used for incoming requests (see [Webhook Signature Verification](/webhooks/signature-verification))
 - Accept any `2xx` response as a successful delivery — respond as soon as you've durably queued the event
 
 ## Setting Up Webhooks
@@ -45,10 +45,10 @@ All webhooks:
     </Note>
   </Step>
   <Step title="Verify signature">
-    Every webhook is signed exactly like an incoming API request (see [Authentication](/getting-started/authentication)): the same four headers (`X-API-Key`, `X-Timestamp`, `X-Nonce`, `X-Signature`) are sent with the callback, built from the same HMAC-SHA256 canonical string. Verify it before trusting the payload — see [Webhook Signature Verification](/concepts/webhooks-signature-verification) for the exact construction.
+    Every webhook is signed exactly like an incoming API request (see [Authentication](/getting-started/authentication)): the same four headers (`X-API-Key`, `X-Timestamp`, `X-Nonce`, `X-Signature`) are sent with the callback, built from the same HMAC-SHA256 canonical string. Verify it before trusting the payload — see [Webhook Signature Verification](/webhooks/signature-verification) for the exact construction.
   </Step>
   <Step title="Acknowledge receipt">
-    Return any `2xx` status as soon as you've durably stored or queued the event. Process asynchronously — failed deliveries are retried automatically (see [Retries](/concepts/webhooks-retries)), so your handler must be idempotent.
+    Return any `2xx` status as soon as you've durably stored or queued the event. Process asynchronously — failed deliveries are retried automatically (see [Retries](/webhooks/retries)), so your handler must be idempotent.
   </Step>
 </Steps>
 
@@ -67,11 +67,11 @@ Available event types are fully documented in the `WebhookEvent` schema in the [
 
 ## Best Practices
 
-- **Always verify signatures.** Validate every delivery against the [Webhook Signature Verification](/concepts/webhooks-signature-verification) scheme before processing the payload.
-- **Handle idempotently.** See [Retries](/concepts/webhooks-retries) — your handler must tolerate duplicate deliveries safely.
+- **Always verify signatures.** Validate every delivery against the [Webhook Signature Verification](/webhooks/signature-verification) scheme before processing the payload.
+- **Handle idempotently.** See [Retries](/webhooks/retries) — your handler must tolerate duplicate deliveries safely.
 - **Respond quickly, process asynchronously.** Acknowledge with a `2xx` as soon as the event is durably queued.
 - **Log everything.** Store raw payloads and headers for debugging.
-- **Expect retries.** The same event occurrence can be redelivered up to 5 times — see [Retries](/concepts/webhooks-retries).
+- **Expect retries.** The same event occurrence can be redelivered up to 5 times — see [Retries](/webhooks/retries).
 
 ## Testing Webhooks Locally
 

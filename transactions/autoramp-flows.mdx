@@ -14,8 +14,8 @@ An autoramp flow links an entry point (where funds arrive) to an exit point (whe
 
 Two convenience endpoints create the entry resource for you as part of flow creation — use these for new integrations:
 
-- [`POST /autoramp-flow/onramp`](/api-reference/autoramp-flow/create-an-onramp-flow-with-virtual-account) <Icon icon="link" size={14} /> — takes `from: {customerId, currency}` and creates (or reuses) the virtual account automatically; `to` is an existing [crypto address](/addresses/crypto-addresses) `id`.
-- [`POST /autoramp-flow/offramp`](/api-reference/autoramp-flow/create-an-offramp-flow-with-deposit-address) <Icon icon="link" size={14} /> — takes `from: {customerId, currency, network}` and creates (or reuses) the deposit address automatically; `to` is an existing [bank account](/addresses/bank-accounts) `id`.
+- [`POST /autoramp-flow/onramp`](/api-reference/autoramp-flow/create-an-onramp-flow-with-virtual-account) <Icon icon="link" size={14} /> — takes `from: {customerId, currency}` and creates (or reuses) the virtual account automatically; `to` is an existing [crypto address](/destinations/crypto-addresses) `id`.
+- [`POST /autoramp-flow/offramp`](/api-reference/autoramp-flow/create-an-offramp-flow-with-deposit-address) <Icon icon="link" size={14} /> — takes `from: {customerId, currency, network}` and creates (or reuses) the deposit address automatically; `to` is an existing [bank account](/destinations/bank-accounts) `id`.
 
 ```json
 {
@@ -44,4 +44,4 @@ Both create calls return only the new flow's `id` — the entry resource's own d
 
 ## Monitoring
 
-Once a flow is `ENABLED`, deposits at the entry point trigger the standard [Deposits](/transactions/deposits) → [Trades](/transactions/trades) lifecycle. Subscribe to webhooks rather than polling — see [Webhooks](/concepts/webhooks).
+Once a flow is `ENABLED`, deposits at the entry point trigger the standard [Deposits](/transactions/deposits) → [Trades](/transactions/trades) lifecycle. Subscribe to webhooks rather than polling — see [Webhooks](/webhooks/overview).

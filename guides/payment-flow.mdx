@@ -31,7 +31,7 @@ Currently only **crypto → fiat** (USDT/USDC → USD) is supported.
 
 ## Prerequisites
 
-- A registered [bank account](/addresses/bank-accounts) for the recipient (must be USD)
+- A registered [bank account](/destinations/bank-accounts) for the recipient (must be USD)
 - Sufficient USDT or USDC balance in your Coinut account
 
 ## Getting a Deposit Address
@@ -63,9 +63,9 @@ Call [`POST /payment/create`](/api-reference/payment/create-payment) to execute 
 
 ## Monitoring
 
-Subscribe to the `PAYMENT_SETTLED` webhook or poll [`GET /payment/detail`](/api-reference/payment/get-payment-detail) and [`GET /payment/list`](/api-reference/payment/get-payment-list). See [Webhooks](/concepts/webhooks) for setup.
+Subscribe to the `PAYMENT_SETTLED` webhook or poll [`GET /payment/detail`](/api-reference/payment/get-payment-detail) and [`GET /payment/list`](/api-reference/payment/get-payment-list). See [Webhooks](/webhooks/overview) for setup.
 
 ## Related
 
-- [Bank Accounts](/addresses/bank-accounts) — registering recipient bank accounts
-- [Webhooks](/concepts/webhooks) — subscribing to `PAYMENT_SETTLED`
+- [Bank Accounts](/destinations/bank-accounts) — registering recipient bank accounts
+- [Webhooks](/webhooks/overview) — subscribing to `PAYMENT_SETTLED`

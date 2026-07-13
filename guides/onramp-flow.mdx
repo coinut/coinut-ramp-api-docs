@@ -41,7 +41,7 @@ Every step must complete before moving to the next.
     The customer must have completed KYC. See [Customer Lifecycle](/customers/customer-lifecycle).
   </Step>
   <Step title="Register the destination wallet">
-    Register the customer's crypto wallet via [Crypto Addresses](/addresses/crypto-addresses). The `to` field in the onramp flow must match an address already registered for this customer.
+    Register the customer's crypto wallet via [Crypto Addresses](/destinations/crypto-addresses). The `to` field in the onramp flow must match an address already registered for this customer.
   </Step>
   <Step title="(Optional) Preview the rate">
     Call [`GET /autoramp-flow/trade-preview`](/api-reference/autoramp-flow/trade-preview) <Icon icon="link" size={14} /> with `fromCurrency`, `toCurrency`, and `amount` for an indicative rate. This is a live estimate, not a locked quote — the flow always executes at the rate current when the deposit clears.
@@ -76,10 +76,10 @@ The response only contains the new flow's `id`. Fetch [`GET /autoramp-flow/detai
 
 ## Monitor via Webhooks
 
-Subscribe to `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_CREATED`, and `TRADE_SETTLED` rather than polling. See [Webhooks](/concepts/webhooks), and [Trades](/transactions/trades) for on-chain verification once `TRADE_SETTLED` fires.
+Subscribe to `DEPOSIT_RECEIVED`, `DEPOSIT_APPROVED`, `TRADE_CREATED`, and `TRADE_SETTLED` rather than polling. See [Webhooks](/webhooks/overview), and [Trades](/transactions/trades) for on-chain verification once `TRADE_SETTLED` fires.
 
 ## Related
 
 - [Customer Lifecycle](/customers/customer-lifecycle)
-- [Crypto Addresses](/addresses/crypto-addresses)
+- [Crypto Addresses](/destinations/crypto-addresses)
 - [Deposits](/transactions/deposits) · [Trades](/transactions/trades)

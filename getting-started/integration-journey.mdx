@@ -41,7 +41,7 @@ The journey breaks into three phases: **customer onboarding**, **destinations & 
 <Steps>
   <Step title="Add Crypto Address" icon="wallet">
     <Card>
-      Call [`POST /crypto-address/add`](/api-reference/crypto-address/add-customers-crypto-address) to register the customer's wallet as the onramp destination. Store the returned `id` — you'll need it for the onramp flow. See [Crypto Addresses](/addresses/crypto-addresses).
+      Call [`POST /crypto-address/add`](/api-reference/crypto-address/add-customers-crypto-address) to register the customer's wallet as the onramp destination. Store the returned `id` — you'll need it for the onramp flow. See [Crypto Addresses](/destinations/crypto-addresses).
     </Card>
   </Step>
   <Step title="Create Onramp Flow" icon="arrows-rotate">
@@ -70,7 +70,7 @@ The journey breaks into three phases: **customer onboarding**, **destinations & 
       | AUD | `payId`, `bicSwift` (BSB), `accountNumber` |
       | EUR / GBP / SGD / USD | `iban`, `bicSwift` (SWIFT/BIC) |
 
-      See [Virtual Accounts](/virtual-accounts/virtual-accounts-guide) for the full field reference.
+      See [Virtual Accounts](/deposit-rails/virtual-accounts-guide) for the full field reference.
     </Card>
   </Step>
 </Steps>
@@ -111,7 +111,7 @@ The journey breaks into three phases: **customer onboarding**, **destinations & 
   <Card title="Offramp Flow" icon="arrow-up-from-line" href="/guides/offramp-flow">
     Convert crypto into fiat via a deposit address
   </Card>
-  <Card title="Webhooks" icon="webhook" href="/concepts/webhooks">
+  <Card title="Webhooks" icon="webhook" href="/webhooks/overview">
     Subscribe instead of polling at every step above
   </Card>
 </CardGroup>

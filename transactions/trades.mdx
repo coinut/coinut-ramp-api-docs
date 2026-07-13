@@ -25,7 +25,7 @@ Each trade includes `fromAmount`/`fromCurrency` and `toAmount`/`toCurrency`, plu
 - `withdrawal` — `{txId}`, present once the outgoing crypto transaction has broadcast (may be absent on early deliveries of `TRADE_SETTLED`)
 
 <Warning>
-  For offramp flows, `TRADE_SETTLED` confirms the crypto-to-fiat **trade** executed — it does **not** confirm the bank transfer landed. There is currently no separate webhook for offramp bank-transfer completion. Treat `TRADE_SETTLED` as "funds are queued for payout" and reconcile actual bank arrival through your own banking feed or Coinut support — don't build logic that expects a further webhook. See [Bank Accounts](/addresses/bank-accounts) for typical settlement windows by currency.
+  For offramp flows, `TRADE_SETTLED` confirms the crypto-to-fiat **trade** executed — it does **not** confirm the bank transfer landed. There is currently no separate webhook for offramp bank-transfer completion. Treat `TRADE_SETTLED` as "funds are queued for payout" and reconcile actual bank arrival through your own banking feed or Coinut support — don't build logic that expects a further webhook. See [Bank Accounts](/destinations/bank-accounts) for typical settlement windows by currency.
 </Warning>
 
 ## On-Chain Verification (Onramp)
@@ -37,4 +37,4 @@ For onramp trades, once `withdrawal.txId` is present, verify the transaction on-
 
 ## Monitoring
 
-Subscribe to `TRADE_CREATED` and `TRADE_SETTLED` rather than polling. See [Webhooks](/concepts/webhooks).
+Subscribe to `TRADE_CREATED` and `TRADE_SETTLED` rather than polling. See [Webhooks](/webhooks/overview).

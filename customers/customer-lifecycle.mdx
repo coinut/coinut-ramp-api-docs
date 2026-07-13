@@ -48,12 +48,12 @@ PENDING → CONFIRMED | REJECTED
 
 Track the transition to `CONFIRMED` one of two ways:
 
-- **Webhook (recommended)** — subscribe to `CUSTOMER_APPROVED` / `CUSTOMER_REJECTED` / `CUSTOMER_DELETED`. See [Webhooks](/concepts/webhooks).
+- **Webhook (recommended)** — subscribe to `CUSTOMER_APPROVED` / `CUSTOMER_REJECTED` / `CUSTOMER_DELETED`. See [Webhooks](/webhooks/overview).
 - **Polling** — call [`GET /customer/detail`](/api-reference/customer/get-customer-details) <Icon icon="link" size={14} /> with `id`, `email`, or `externalId`.
 
 Do not attempt to create virtual accounts, bank accounts, crypto addresses, or autoramp flows for a customer until they reach `CONFIRMED` — those calls will fail against a `PENDING` customer.
 
 ## Related
 
-- [Crypto Addresses](/addresses/crypto-addresses) and [Bank Accounts](/addresses/bank-accounts) — registered once a customer is `CONFIRMED`
+- [Crypto Addresses](/destinations/crypto-addresses) and [Bank Accounts](/destinations/bank-accounts) — registered once a customer is `CONFIRMED`
 - [Onramp Flow](/guides/onramp-flow) · [Offramp Flow](/guides/offramp-flow)

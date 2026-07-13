@@ -43,15 +43,15 @@
           {
             "group": "Deposit Rails",
             "pages": [
-              "virtual-accounts/virtual-accounts-guide",
+              "deposit-rails/virtual-accounts-guide",
               "deposit-rails/deposit-addresses"
             ]
           },
           {
             "group": "Destinations",
             "pages": [
-              "addresses/crypto-addresses",
-              "addresses/bank-accounts"
+              "destinations/crypto-addresses",
+              "destinations/bank-accounts"
             ]
           },
           {
@@ -80,9 +80,9 @@
           {
             "group": "Webhooks",
             "pages": [
-              "concepts/webhooks",
-              "concepts/webhooks-signature-verification",
-              "concepts/webhooks-retries"
+              "webhooks/overview",
+              "webhooks/signature-verification",
+              "webhooks/retries"
             ]
           },
           {
