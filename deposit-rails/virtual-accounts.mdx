@@ -1,5 +1,5 @@
 ---
-title: "Virtual Accounts Guide"
+title: "Virtual Accounts"
 description: "Deep dive into virtual accounts for fiat payment collection."
 ---
 
@@ -51,6 +51,7 @@ Call [`POST /virtual-account/create`](/api-reference/virtual-account/create-a-fi
 
 <Note>
   [`POST /virtual-account/create`](/api-reference/virtual-account/create-a-fiat-virtual-account) <Icon icon="link" size={14} /> itself only returns the new VA's `id`. Immediately call [`GET /virtual-account/detail`](/api-reference/virtual-account/get-fiat-va-detail) <Icon icon="link" size={14} /> to get the full banking details — see the API Reference for the response schema.
+</Note>
 
 ## AUD Virtual Accounts & PayID
 

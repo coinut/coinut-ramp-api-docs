@@ -43,7 +43,7 @@
           {
             "group": "Deposit Rails",
             "pages": [
-              "deposit-rails/virtual-accounts-guide",
+              "deposit-rails/virtual-accounts",
               "deposit-rails/deposit-addresses"
             ]
           },
