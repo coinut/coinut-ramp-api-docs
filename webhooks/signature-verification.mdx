@@ -228,7 +228,7 @@ if __name__ == "__main__":
 ## Important Notes
 
 - Always use the same **API Secret** that was provided to you by Coinut — there is no separate webhook secret.
-- Implement timestamp validation to protect against replay attacks (e.g. reject requests where `X-Timestamp` is older than 5 minutes).
+- Implement timestamp validation to protect against replay attacks. Coinut enforces a **5-minute (300 second)** window on the `X-Timestamp` of requests you send to the API; use the same window when validating the `X-Timestamp` on incoming webhooks.
 - Use a constant-time comparison function (`crypto.timingSafeEqual`, `hmac.compare_digest`) to prevent timing attacks.
 - Keep your API Secret secure and never expose it in client-side code.
 

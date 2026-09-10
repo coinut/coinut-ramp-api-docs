@@ -32,15 +32,16 @@ Every request must be authenticated using **HMAC-SHA256** request signing. You r
 In short: include `X-API-Key`, `X-Timestamp`, `X-Nonce`, and `X-Signature` headers on every request. The signature is built from a newline-delimited canonical string (`METHOD\nHOST\nPATH\nQUERY\nBODY_SHA256_HEX\nTIMESTAMP\nNONCE`) signed with your API secret.
 
 <Note>
-  `X-Timestamp` is included in the signed canonical string but is **not currently checked against server time** — there is no replay-window enforcement today. Keep your server clock accurate with NTP anyway: it's required for audit trails, and a staleness check may be added in the future without notice.
+  `X-Timestamp` is part of the signed canonical string **and** is checked against Coinut's server clock: a signed request whose `X-Timestamp` drifts more than **5 minutes (300 seconds)** from server time is rejected with `401`. Keep your server clock synchronised (NTP) — a skewed clock now causes authentication failures, not just audit-trail gaps.
 </Note>
 
 
 ## Request & Response Format
 
 - All requests and responses use **JSON** with **UTF-8** encoding.
-- Set `Content-Type: application/json` on every request.
+- Set `Content-Type: application/json` on every request. Endpoints that take a file upload also accept `multipart/form-data`: **when you attach a file you must use `multipart/form-data`**, and when no file is attached either format works, so pick whichever you prefer. See [Payment Flow](/guides/payment-flow) and [Bank Accounts](/destinations/bank-accounts).
 - Use **POST** for mutations and **GET** for reads unless specified otherwise.
+- **Successful `POST` requests return HTTP `201`**, not `200` (the framework default for POST). Treat `200` and `201` as equivalent success.
 
 ### Success Response
 
@@ -76,11 +77,12 @@ Errors are returned in a consistent envelope. The `status` field indicates the e
 
 ## HTTP Status Codes
 
-The API returns three HTTP status codes in normal operation. There is no `429` or `500` — every application-level failure is reported as `422` with a `status`/`message` body.
+The API returns these HTTP status codes in normal operation. There is no `429` or `500` — every application-level failure is reported as `422` with a `status`/`message` body.
 
 | Code | Meaning |
 | --- | --- |
-| `200` | Request succeeded On a small set of older endpoints, check the JSON `status` field rather than relying on the HTTP code alone |
+| `200` | Request succeeded (`GET` endpoints) |
+| `201` | Request succeeded and a resource was created or updated — **every successful `POST` returns `201`** (e.g. `/customer/create`, `/bank-account/add`, `/subscribed-events`). Do not treat `201` as an indeterminate result: the `{status, data}` body is the authoritative outcome. |
 | `401` | Authentication failed — see [Authentication](/getting-started/authentication) |
 | `422` | Request was authenticated but invalid, or a downstream operation failed |
 

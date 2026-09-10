@@ -17,7 +17,9 @@ you pay with USDT or USDC and the recipient receives USD in their bank account.
 
 2. **Create** — Call `POST /payment/create` to initiate the payment. You specify
    the deduct currency (USDT / USDC), the fiat amount, the target bank account,
-   and a reference. Optionally attach a supporting document.
+   and a reference. Both `application/json` and `multipart/form-data` are
+   accepted; attaching a `supportingDocument` file requires
+   `multipart/form-data`. A successful create returns HTTP `201`.
 
 3. **Track** — Poll `GET /payment/detail` or `GET /payment/list` to monitor the
    payment. When settled, a `PAYMENT_SETTLED` webhook is fired.

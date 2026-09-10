@@ -14,7 +14,7 @@ Include these four headers in every authenticated request:
 | Header | Required | Description |
 | --- | --- | --- |
 | `X-API-Key` | Yes | Your API key |
-| `X-Timestamp` | Yes | Unix timestamp in **seconds** (as string) |
+| `X-Timestamp` | Yes | Unix timestamp in **seconds** (as string), within **5 minutes (300 seconds)** of Coinut's server clock |
 | `X-Nonce` | Yes | A unique random string per request (e.g., UUID) |
 | `X-Signature` | Yes | HMAC-SHA256 signature (lowercase hex string) |
 
@@ -327,7 +327,7 @@ const nonce = "1234567890";  // never reuse hardcoded nonces
 
 ### Use Timestamp in Seconds
 
-The `X-Timestamp` must be a **Unix timestamp in seconds** (not milliseconds or microseconds).
+The `X-Timestamp` must be a **Unix timestamp in seconds** (not milliseconds or microseconds), and it must be within **5 minutes (300 seconds)** of Coinut's server clock. Requests outside that window are rejected with `401` as part of replay protection — keep every host that signs requests synchronised with NTP.
 
 | Language | Expression | Output |
 | --- | --- | --- |

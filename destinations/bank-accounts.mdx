@@ -7,7 +7,7 @@ A bank account is the fiat-side destination for an offramp payout — where conv
 
 ## Adding a Bank Account
 
-Call [`POST /bank-account/add`](/api-reference/bank-account/add-customers-bank-account) <Icon icon="link" size={14} />:
+Call [`POST /bank-account/add`](/api-reference/bank-account/add-customers-bank-account) <Icon icon="link" size={14} />. The `statementFile` upload is optional — send the request as `multipart/form-data` when you attach one, otherwise `application/json` works too. A successful create returns HTTP `201`.
 
 ```json
 {

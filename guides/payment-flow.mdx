@@ -50,6 +50,10 @@ Before creating a payment, call [`GET /payment/estimate`](/api-reference/payment
 
 Call [`POST /payment/create`](/api-reference/payment/create-payment) to execute the conversion and payout. See the API Reference for the full request schema.
 
+<Note>
+  `POST /payment/create` accepts both `application/json` and `multipart/form-data`. When you attach a `supportingDocument` file you must use `multipart/form-data`; when you send no file, either format works — use whichever you prefer. A successful create returns HTTP `201`.
+</Note>
+
 <Warning>
   The bank account must be denominated in USD. Payments to non-USD bank accounts will be rejected.
 </Warning>
